@@ -5,7 +5,7 @@
 
 🚧 ** **_needLR_3.2  is currently a beta version and actively under construction_** ** 🚧
 
-*Please contact me at jgust1@uw.edu with issues or suggestions.*
+*Please contact jgust1@uw.edu with issues or suggestions.*
 
 needLR is a command line tool that uses Jasmine merging to compare a query structural variant (SV) vcf to our collection of 1000 Genomes Project (1KGP) samples sequenced by Oxford Nanopore Technologies long-read sequencing (ONT LRS). The output is a .txt file with detailed annotations about the genomic context, OMIM phenotype association, and ancestry-specific allele frequencies of each of the SVs in the query vcf. 
 
