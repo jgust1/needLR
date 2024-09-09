@@ -9,25 +9,21 @@
 
 needLR is a command line tool that uses Jasmine merging to compare a query structural variant (SV) vcf to our collection of 1000 Genomes Project (1KGP) samples sequenced by Oxford Nanopore Technologies long-read sequencing (ONT LRS). The output is a .txt file with detailed annotations about the genomic context, OMIM phenotype association, and ancestry-specific allele frequencies of each of the SVs in the query vcf. 
 
-There are 3 key figures that drive this project:
+There are 3 key concepts that drive this project:  
+* More than half of suspected Mendelian conditions remain molecularly unsolved after current clinical testing methods.  
+* Basepair-for-basepair, there is more genetic diversity associated with structural variants (SVs) than SNVs and indels combined.  
+* Traditional short read sequencing technologies are underpowered to resolve up to half of the SVs per genome.  
 
-* More than half of suspected Mendelian conditions remain molecularly unsolved after current clinical testing methods.
-
-* Basepair-for-basepair, there is more genetic diversity associated with structural variants (SVs) than SNVs and indels combined.
-
-* Traditional short read sequencing technologies are underpowered to resolve up to half of the SVs per genome.
-  
 Thus, we need a comprehensive catalog of long-read sequencing (LRS)-based SV calls from healthy individuals in order to filter for rare potentially disease-causing SVs in clinical cases. 
 
 The Miller Lab is actively using Oxford Nanopore Technologies (ONT) LRS to sequence samples from the 1000 Genomes Project (1KGP). Our recent [preprint](https://pubmed.ncbi.nlm.nih.gov/38496498/) describes the first 100 samples in the cohort. This version of needLR incorporates SV calls made by Sniffles2 v2.2 for 150 1KGP samples. 
 
-Please cite our 2024 preprint:
-
-*Gustafson JA, Gibson SB, Damaraju N, et al. Nanopore sequencing of 1000 Genomes Project samples to build a comprehensive catalog of human genetic variation. Preprint. medRxiv. 2024;2024.03.05.24303792. Published 2024 Mar 7. doi:10.1101/2024.03.05.24303792*
+#### Please cite our 2024 preprint:  
+<sup>*Gustafson JA, Gibson SB, Damaraju N, et al. Nanopore sequencing of 1000 Genomes Project samples to build a comprehensive catalog of human genetic variation. Preprint. medRxiv. 2024;2024.03.05.24303792. Published 2024 Mar 7. doi:10.1101/2024.03.05.24303792*</sup>
 
 ## WORKFLOW
 
-needLR performs the following steps on an input query vcf:
+#### needLR performs the following steps on an input query vcf:
 
 1. Preprocess query sample vcf to match 1KGP vcf format (SVs >=50bp, FILTER=PASS, full chromosomes)
 2. Run Jasmine merge on 150 1KGP samples and 1 query sample
@@ -37,52 +33,67 @@ needLR performs the following steps on an input query vcf:
 
 ## INSTALLATION AND SET UP
 
-needLR requires an environment with the following dependencies:
-```
-jasmine v1.1.5
-bedtools v2.31.1
-bcftools v1.19
-```
+#### needLR requires an environment with the following dependencies:
 
-Download the needLR_local zipped directory from AWS into a parent directory you want to run needLR from
-```
-wget https://s3.amazonaws.com/1000g-ont/needLR/needLR_local.zip
-```
-*Note: The zip file is ~2.5G, the unzipped directory is ~7G*
+[jasmine v1.1.5](https://github.com/mkirsche/Jasmine/) <sup>1</sup>  
+[bedtools v2.31.1](https://github.com/arq5x/bedtools2/) <sup>2</sup>  
+[bcftools v1.19](https://github.com/samtools/bcftools/) <sup>3</sup>  
+
+<sup>1</sup> <sub>*Kirsche M, Prabhu G, Sherman R, et al. Jasmine and Iris: population-scale structural variant comparison and analysis. Nat Methods. 2023;20(3):408-417. doi:10.1038/s41592-022-01753-3*</sub>    
+<sup>2</sup> <sub>*Quinlan AR, Hall IM. BEDTools: a flexible suite of utilities for comparing genomic features. Bioinformatics. 2010;26(6):841-842. doi:10.1093/bioinformatics/btq033*</sub>  
+<sup>3</sup> <sub>*Danecek P, Bonfield JK, Liddle J, et al. Twelve years of SAMtools and BCFtools. Gigascience. 2021;10(2):giab008. doi:10.1093/gigascience/giab008*</sub>  
 
 
-Unzip the directory 
+#### Download the needLR_local directory from AWS into a parent directory you want to run needLR from
 ```
-unzip needLR_local.zip
+wget https://s3.amazonaws.com/1000g-ont/needLR/needLR_local.tar.gz
+```
+>[!NOTE]
+>The zip file is ~3.2G, the unzipped directory is ~9.5G
+
+
+#### Extract the directory 
+```
+tar -xvzf needLR_local.tar.gz
 ```
 This will create a working directory called needLR_local. Everything needed to run needLR is inside.
 
 
-Navigate into the working directory
+#### Navigate into the working directory
 ```
 cd needLR_local
 ```
-This is what you should see
+This is what you should see:
 ```
 backend_files/
 needLR_3.2.sh 
 needLR_output/
+EXAMPLE/
 ```
 
 ## RUN  NEEDLR
 
-The needLR_3.2.sh command takes 3 required arguments:
+#### The needLR_3.2.sh command takes 3 required arguments:
 
 | Flag | Description |
 | :------------ |:-------------|
 |-f| A .txt file that lists the full file path(s) to the query vcf(s) (The vcfs must be gzipped (*.vcf.gz) and have an index in the same directory as the vcf)|
-|-g| A fasta file for a reference genome (we use the hg38 reference recommended [here](https://lh3.github.io/2017/11/13/which-human-reference-genome-to-use))|
+|-g| A fasta file for a reference genome (we use the hg38 reference recommended [here](https://lh3.github.io/2017/11/13/which-human-reference-genome-to-use)) - This fasta is included in the backend_files download|
 |-t| The number of threads to use in the Jasmine merging step|
 
-To run needLR:
+#### To run needLR:
 ```
 needLR_3.2.sh -f /file/path/to/list.txt -g /file/path/to/reference/genome.fa -t 20
 ```
+As needLR is running, you will see the Jasmine output building - it will look like this:
+<img width="878" alt="image" src="https://github.com/user-attachments/assets/7f2972ff-670c-4042-861d-172f704fc744">
+
+Then it will look like this:
+<img width="878" alt="image" src="https://github.com/user-attachments/assets/c6b03af3-bc68-4174-952d-c11243c46d02">
+
+And eventually it will look like this:
+<img width="878" alt="image" src="https://github.com/user-attachments/assets/40ae6ecb-087c-4d76-a1d5-42695b4ff063">  
+(Sometimes this step can take quite a while)
 
 ## OUTPUT
 
@@ -95,7 +106,11 @@ The output files will be:
 |preprocessed_{SAMPLE_ID}.vcf| Preprocessed query vcf that is used in the Jasmine merge|
 |{SAMPLE_ID}_jasmine.vcf| Raw Jasmine output from the query sample + 1KGP sample merge|
 
-_Note: needLR generates many temporary files when running, this can add up to ~2G_
+>[!NOTE]
+>needLR generates many temporary files when running, this can add up to ~2G
+
+>[!NOTE]
+>Jasmine will automatically make a seperate  `/needLR_local/output` directory (this can be ignored)
 
 ## ANALYZING OUTPUT
 
@@ -124,7 +139,7 @@ These are the columns which can be sorted at will:
 | Pericentromeric       | If the SV intersects with a pericentromeric region (+/-5Mb on either side of UCSC-defined centromere) |
 | Telomeric             | If the SV intersects with a telomere (5Mb of either end of a chromosome)           |
 | STR                   | If the SV intersects with a Short Tandem Repeat region (vamos original motifs, n=148) |
-| VNTR                  | If the SV intersects with a Variable Number Tandem Repeat region (vamos original motifs, n=148) |
+| VNTR                  | If the SV intersects with a Variable Number Tandem Repeat region (vamos original motifs, individuals=148) |
 | Segdup                | If the SV intersects with a segmental duplication (Genome in a Bottle v3.3)        |
 | Repeat                | If the SV intersects with a repeat region (UCSC hg38 repeat masker)                |
 | Gap                   | If the SV intersects with an hg38 gap region (UCSC hg38 mapping and sequencing: gap) |
@@ -160,9 +175,17 @@ These are the columns which can be sorted at will:
 | HWE-q                 | SV allele frequency in 1KGP samples (n=150)                                        |
 | HWE                   | Is the SV in Hardy-Weinberg equilibrium in the 1KGP samples (n=150)                |
 
-Column headers are also defined in `/needLR_local/needLR_output/column_key.txt`
+Column headers are also defined in `/needLR_local/needLR_output/column_key.txt`  
 
-[Here](https://docs.google.com/spreadsheets/d/1N_OOIQIQJJLoDX_BcjiF02pvJQ7u4QU3/edit?gid=1980402699#gid=1980402699) is an example of the RESULTS output in Excel format.
+## EXAMPLE
+
+In the downloaded zip file there is a directory `EXAMPLE/` which contains an example vcf and an example `input_list.txt`.  
+If eveything is sut up correctly, you should be able to run the following command from inside the `/needLR_local` directory
+```
+./needLR_3.2.sh -f EXAMPLE/input_list.txt -g /backend_files/hg38_fasta/hg38.no_alt.fa -t 20
+```
+and find the output here: `needLR_local/needLR_output/EXAMPLE_HG01511_sniffles2_needLR_3.2`  
+The results should match the example output available [here](https://docs.google.com/spreadsheets/d/1N_OOIQIQJJLoDX_BcjiF02pvJQ7u4QU3/edit?gid=1980402699#gid=1980402699) in Excel format.
 
 **Considerations/shortcomings:**
 
@@ -176,11 +199,26 @@ Some SVs are called and pass all filters but have a genotype of “./.” This c
 We ran needLR on sniffles2 vcfs from 8 individuals with pathogenic SVs that were unsolved by short-read sequencing.
 
 needLR reduced the number of SVs per individual from an average of 22,583 total SVs to an average of 565 unique SVs:
-<img width="742" alt="image" src="https://github.com/user-attachments/assets/4c14e26d-b16b-4cdd-97b6-c1d04512165d">
+<img width="768" alt="image" src="https://github.com/user-attachments/assets/ce6d86ec-0e90-4770-8499-5d84a11de208">
 
 Of the unique SVs, an average of 144 intersect with hg38 annotated genes:
-<img width="742" alt="image" src="https://github.com/user-attachments/assets/9df3a3ff-1b54-4381-b3bf-6f64db9a8b72">
+<img width="768" alt="image" src="https://github.com/user-attachments/assets/2c203333-e461-4a22-ac6a-249d2d08b9a2">
 
 Of the unique, genic SVs, even fewer intersect with canonical exons and/or are in genes associated with OMIM phenotypes:
-<img width="742" alt="image" src="https://github.com/user-attachments/assets/32afcdc8-1cfc-4646-b6a5-59ff60555e0f">
+<img width="776" alt="image" src="https://github.com/user-attachments/assets/1649d44d-8e37-4355-8206-63d532099f56">
 
+## ADITIONAL RESOURCES
+
+[Here](https://s3.amazonaws.com/1000g-ont/needLR/UWONT150_needLR_3.2_RESULTS.txt.zip) is a "quick reference" annotated needLR output for just the first 150 1KGP samples (no query sample) - This has allele frequencies and genomic context info for each of the SVs seen in our first 150 samples.
+
+## COMING SOON
+
+#### More 1KGP samples
+Our goal is to have 500 1KGP samples sequenced and analyzed by the begining of 2025
+
+#### needLR_Trio  
+For annotating inheritance and potential *de novo* SVs when trio data is available
+
+#### chm13 compatibility 
+
+#### Additional phenotype annotations (ie.HPO terms)
