@@ -7,7 +7,7 @@
 
 *NOTE: needLR_3.2 has been updated to needLR_3.3 as of November 7th, 2024. The major change is that needLR_3.3 runs Truvari instead of Jasmine for SV merging. This streamlines the input (just 1 backend vcf) and reduces the amount of space needLR needs*
 
-*needLR_trio_3.3 is also now available! Click [here](https://github.com/jgust1/needLR/blob/main/needLR_trio) for detailed instructions*
+*needLR_trio_3.3 is also now available! Click [here](https://github.com/jgust1/needLR/blob/main/needLR_trio.md) for detailed instructions*
 
 *Please contact jgust1@uw.edu with issues or suggestions.*
 
@@ -72,7 +72,7 @@ needLR_output/
 EXAMPLE/
 ```
 
-## RUN  NEEDLR (standard) - go [here](https://github.com/jgust1/needLR/blob/main/needLR_trio) for needLR_trio
+## RUN  NEEDLR (standard) - go [here](https://github.com/jgust1/needLR/blob/main/needLR_trio.md) for needLR_trio
 
 #### The needLR_3.3.sh command takes 2 required arguments:
 
