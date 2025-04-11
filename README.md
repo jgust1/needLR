@@ -119,6 +119,9 @@ EXAMPLE/
 ./needLR_3.4_duo -g /file/path/to/reference/genome.fa -b /file/path/to/proband.vcf.gz -r /file/path/to/parent.vcf.gz
 ```
 
+>[!NOTE]
+>needLR_duo is imperfect in predicting inherited vs. _de novo_ SVs. The annotation is fully dependent on how well the SVs were merged. We recommend using needLR as a starting point and then manually inspecting inheritance in IGV.
+
 ## RUN needLR_3.4_trio
 
 #### needLR_3.4_trio takes 5 required arguments:
@@ -134,6 +137,9 @@ EXAMPLE/
 ```
 ./needLR_3.4_trio -g /file/path/to/reference/genome.fa -b /file/path/to/proband.vcf.gz -m /file/path/to/maternal.vcf.gz -p/file/path/to/paternal.vcf.gz
 ```
+
+>[!NOTE]
+>needLR_trio is imperfect in predicting inherited vs. _de novo_ SVs. The annotation is fully dependent on how well the SVs were merged. We recommend using needLR as a starting point and then manually inspecting inheritance in IGV.
 
 ## RUN needLR_3.4_custom_controls
 
@@ -290,7 +296,9 @@ The results should match the example output in `EXAMPLE/`
 
 ## NOTES ON TRUVARI PARAMETERS
 
-**Considerations/shortcomings:**
+By design, needLR uses extremely relaxed merging parameters, tending more toward over-merging than under-merging. We have shown that this is suitable for all of our test cases. However, if the user wants to adjust the Truvari parameters, they are defined at the very top of the script for easy hacking. 
+
+## CONSIDERATIONS AND LIMITATIONS
 
 All of the allele frequencies are currently based on the number of autosomes in the 1KGP sample set, rendering allele frequencies (other than 0) for SVs on chrX and chrY inaccurate.
 BNDs and SVs >=10Mb are filtered out (huge variants are not efficient to annotate this way)
