@@ -301,7 +301,10 @@ By design, needLR uses extremely relaxed merging parameters, tending more toward
 ## CONSIDERATIONS AND LIMITATIONS
 
 All of the allele frequencies are currently based on the number of autosomes in the 1KGP sample set, rendering allele frequencies (other than 0) for SVs on chrX and chrY inaccurate.
-BNDs and SVs >=10Mb are filtered out (huge variants are not efficient to annotate this way)
+
+BNDs and SVs >=10Mb are filtered out (huge variants are not efficient to annotate this way).
+
+Currently, needLR is not effective in identifying candidate pathogenic tandem repeats due to the nature of the relaxed SV merging parameters, but a future version will incorporate a tandem repeat annotation tool.
 
 ## COMING SOON
 
