@@ -40,10 +40,10 @@ The Miller Lab is actively using Oxford Nanopore Technologies (ONT) LRS to seque
 5. Annotate query sample SVs with genomic context, OMIM phenotype association, and Hardy-Weinberg equilibrium check
 
 needLR_3.4 offers multiple functionalities:
-* [needLR_basic](#run-needlr_34_basic): Compares one query vcf to a pre-merged, multisample vcf of 450 1KGP samples and annotates the SVs in the query invididual.
-* [needLR_duo](#run-needlr_34_duo): Compares a query sample and parental sample to a pre-merged, multisample vcf of 450 1KGP samples and annotates the SVs in the query invididual. This function uniquely annoaotes the SVs from the query vcf as being "inherited" or "uncertain" based on SVs from the parental vcf.
-* [needLR_trio](#run-needlr_34_trio): Compares a query sample and two parental samples (maternal and paternal) to a pre-merged, multisample vcf of 450 1KGP samples and annotates the SVs in the query invididual. This function uniquely annoaotes the SVs from the query vcf as being "inherited" or "de novo" based on SVs from the parental vcfs.
-* [needLR_custom_controls](#run-needlr_34_custom_controls): Compares one query vcf to a pre-merged, multisample vcf of a cohort samples defined by the user and annotates the SVs in the query invididual.
+* [needLR_basic](#run-needlr_34_basic): Compares one query vcf to a pre-merged, multisample vcf of 450 1KGP samples and annotates the SVs in the query individual.
+* [needLR_duo](#run-needlr_34_duo): Compares a query sample and parental sample to a pre-merged, multisample vcf of 450 1KGP samples and annotates the SVs in the query individual. This function uniquely annotates the SVs from the query vcf as being "inherited" or "uncertain" based on SVs from the parental vcf.
+* [needLR_trio](#run-needlr_34_trio): Compares a query sample and two parental samples (maternal and paternal) to a pre-merged, multisample vcf of 450 1KGP samples and annotates the SVs in the query individual. This function uniquely annotates the SVs from the query vcf as being "inherited" or "de novo" based on SVs from the parental vcfs.
+* [needLR_custom_controls](#run-needlr_34_custom_controls): Compares one query vcf to a pre-merged, multisample vcf of a cohort of samples defined by the user and annotates the SVs in the query individual.
 * [needLR_annotate_multisample](#run-needlr_34_annotate_multisample): Annotates any multisample vcf (from bcftools merge or Trivari). Does not require a specific query sample
 
 >[!NOTE]
@@ -159,7 +159,7 @@ EXAMPLE/
 ```
 bcftools view -i '(INFO/SVTYPE="BND") || (INFO/SVTYPE="INS" || INFO/SVTYPE="DEL" || INFO/SVTYPE="DUP" || INFO/SVTYPE="INV") && (INFO/SVLEN > 49 || INFO/SVLEN < -49)' -f PASS -r chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY,chrM -o preprocessed.vcf original.vcf
 ```
-#### 2) Merge the preporcessed vcfs using bcftools merge and tabix the output (where sample_path_list.txt is a list of all of the sample vcfs to merge in the order they should be in). This merge only merges exact variant matches and outputs a multipsample vcf
+#### 2) Merge the preprocessed vcfs using bcftools merge and tabix the output (where sample_path_list.txt is a list of all of the sample vcfs to merge in the order they should be in). This merge only merges exact variant matches and outputs a multisample vcf
 ```
 bcftools merge -m none --force-samples -l sample_path_list.txt -Oz -o bcftools_merged.vcf.gz
 
