@@ -90,6 +90,11 @@ needLR_output/
 EXAMPLE/
 ```
 
+#### To make the scripts executable, do the following for each
+```
+chmod +x script.sh
+```
+
 ## RUN needLR_3.4_basic
 
 #### needLR_3.4_basic takes 2 required arguments:
