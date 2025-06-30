@@ -44,7 +44,7 @@ needLR_3.4 offers multiple functionalities:
 * [needLR_duo](#run-needlr_34_duo): Compares a query sample and parental sample to a pre-merged, multisample vcf of 450 1KGP samples and annotates the SVs in the query individual. This function uniquely annotates the SVs from the query vcf as being "inherited" or "uncertain" based on SVs from the parental vcf.
 * [needLR_trio](#run-needlr_34_trio): Compares a query sample and two parental samples (maternal and paternal) to a pre-merged, multisample vcf of 450 1KGP samples and annotates the SVs in the query individual. This function uniquely annotates the SVs from the query vcf as being "inherited" or "de novo" based on SVs from the parental vcfs.
 * [needLR_custom_controls](#run-needlr_34_custom_controls): Compares one query vcf to a pre-merged, multisample vcf of a cohort of samples defined by the user and annotates the SVs in the query individual.
-* [needLR_annotate_multisample](#run-needlr_34_annotate_multisample): Annotates any multisample vcf (from bcftools merge or Trivari). Does not require a specific query sample
+* [needLR_annotate_multisample](#run-needlr_34_annotate_multisample): Annotates any multisample vcf (from bcftools merge or Truvari). Does not require a specific query sample
 
 >[!NOTE]
 >needLR is currently optimized for Sniffles2 SV calling and all backend annotation data is based on the GRCh38 reference genome
