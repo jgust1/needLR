@@ -107,7 +107,7 @@ chmod +x script.sh
 
 #### Example:
 ```
-./needLR_v3.5_basic -g /file/path/to/reference/genome.fa -l /file/path/to/vcf_list.txt
+./needLR_v3.5_basic.sh -g /file/path/to/reference/genome.fa -l /file/path/to/vcf_list.txt
 ```
 
 ## RUN needLR_v3.5_annotate_bed
@@ -123,7 +123,7 @@ chmod +x script.sh
 
 #### Example:
 ```
-./needLR_v3.5_annotate_bed -g /file/path/to/reference/genome.fa -b /file/path/to/bed_list.txt
+./needLR_v3.5_annotate_bed.sh -g /file/path/to/reference/genome.fa -b /file/path/to/bed_list.txt
 ```
 
 ## RUN needLR_v3.5_duo
