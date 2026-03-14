@@ -7,6 +7,15 @@
   #bedtools v2.31.1 
   #bcftools v1.19 
 
+##needLR default Truvari parameters
+truvari_k="common"
+truvari_s=50
+truvari_S=10000000
+truvari_r=2000
+truvari_p=0
+truvari_P=0.2
+truvari_O=0.2
+
 while getopts g:l: flag
 do
     case "${flag}" in
@@ -61,7 +70,7 @@ SAS=103
 
 #preproc2
 #This preprocesses the query VCFs to be >=50bp and on full chromosomes
-bcftools view -i '(INFO/SVTYPE="BND") || (INFO/SVTYPE="INS" || INFO/SVTYPE="DEL" || INFO/SVTYPE="DUP" || INFO/SVTYPE="INV") && (INFO/SVLEN > 49 || INFO/SVLEN < -49)' -r chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY,chrM -o "$UNSOLVED_DIR"/preprocessed_temp_"$QUERY_FILE_NAME".vcf "$QUERY_FILE_PATH"
+bcftools view -i '(INFO/SVTYPE="BND") || (INFO/SVTYPE="INS" || INFO/SVTYPE="DEL" || INFO/SVTYPE="DUP" || INFO/SVTYPE="INV") && (INFO/SVLEN > 49 || INFO/SVLEN < -49) && GT!="0/0" && GT!="0|0"' -r chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY,chrM -o "$UNSOLVED_DIR"/preprocessed_temp_"$QUERY_FILE_NAME".vcf "$QUERY_FILE_PATH"
 
 bgzip "$UNSOLVED_DIR"/preprocessed_temp_"$QUERY_FILE_NAME".vcf
 
@@ -77,7 +86,7 @@ bcftools merge -m none --force-samples -l "$UNSOLVED_DIR"/list_temp.txt -Oz -o "
 tabix "$UNSOLVED_DIR"/"$QUERY_FILE_NAME"_bcftools_merged_with_ONT500_temp.vcf.gz
 
 #Truvari collapse (T31)
-truvari collapse -i "$UNSOLVED_DIR"/"$QUERY_FILE_NAME"_bcftools_merged_with_ONT500_temp.vcf.gz -o "$UNSOLVED_DIR"/"$QUERY_FILE_NAME"_truvari_merged_temp.vcf -c "$UNSOLVED_DIR"/"$QUERY_FILE_NAME"_truvari_collapsed_temp.vcf -f $REF_GENOME -k common -s 50 -S 10000000 -r 2000 -p 0 -P 0.2 -O 0.2
+truvari collapse -i "$UNSOLVED_DIR"/"$QUERY_FILE_NAME"_bcftools_merged_with_ONT500_temp.vcf.gz -o "$UNSOLVED_DIR"/"$QUERY_FILE_NAME"_truvari_merged_temp.vcf -c "$UNSOLVED_DIR"/"$QUERY_FILE_NAME"_truvari_collapsed_temp.vcf -f $REF_GENOME -k $truvari_k -s $truvari_s -S $truvari_S -r $truvari_r -p $truvari_p -P $truvari_P -O $truvari_O
 
 ##This parses the Truvari VCF output for relevant information
 bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t%INFO/SVLEN\t%INFO/SVTYPE[\t%GT\t%DV\t%DR]\n' "$UNSOLVED_DIR"/"$QUERY_FILE_NAME"_truvari_merged_temp.vcf > "$UNSOLVED_DIR"/"$QUERY_FILE_NAME"_truvari_merged_temp.txt
@@ -468,17 +477,13 @@ awk 'BEGIN {FS = OFS = "\t"} {for (i = 1; i <= NF; i++) if ($i == "") $i = "."} 
 
 #These commands annotates each SV with info (for each bed file), removes unnecessary columns, labels annotated regions as such, and sorts the file (necessary for bedtools intersect)
 
-bedtools intersect -wa -wb -loj \
-  -a "$UNSOLVED_DIR"/"$QUERY_FILE_NAME"_temp22.txt \
+bedtools sort -i "$UNSOLVED_DIR"/"$QUERY_FILE_NAME"_temp22.txt > "$UNSOLVED_DIR"/"$QUERY_FILE_NAME"_temp22.1.txt
+
+bedtools map \
+  -a "$UNSOLVED_DIR"/"$QUERY_FILE_NAME"_temp22.1.txt \
   -b "$UTR" \
-| cut -f1-47,49 \
-| awk 'BEGIN{FS=OFS="\t"}
-       {
-         if ($48 == -1 || $48 == ".") $48=".";
-         else $48="UTR";
-         print;
-       }' \
-| sort -u \
+  -c 5 \
+  -o distinct \
 > "$UNSOLVED_DIR"/"$QUERY_FILE_NAME"_temp23.txt
 
 
