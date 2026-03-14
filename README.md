@@ -34,7 +34,7 @@ The Miller Lab is actively using Oxford Nanopore Technologies (ONT) LRS to seque
 This version of needLR incorporates SV calls made by Sniffles_v2.6.2 for 500 1KGP samples using the following parameters. (The tandem repeat file was sourced from PacBio PBSV annotation [here](https://github.com/PacificBiosciences/pbsv/tree/master/annotations)) - we recommend generating SVs for user query/input files using the exact same parameters for optimal merging efficiency.  
 
 ```
-        sniffles \
+        sniffles_v2.6.2 \
             --input sample.bam \
             --reference hg38_reference.fa \
             --output-rnames \
@@ -54,12 +54,12 @@ This version of needLR incorporates SV calls made by Sniffles_v2.6.2 for 500 1KG
 5. Annotate query sample SVs with genomic context, OMIM phenotype association, and Hardy-Weinberg equilibrium check
 
 needLR_v3.5 offers multiple functionalities:
-* [needLR_basic](#run-needlr_35_basic): Compares one query vcf to a pre-merged, multisample vcf of 500 1KGP samples and annotates the SVs in the query individual.
-* [needLR_duo](#run-needlr_35_duo): Compares a query sample and parental sample to a pre-merged, multisample vcf of 500 1KGP samples and annotates the SVs in the query individual. This function uniquely annotates the SVs from the query vcf as being "inherited" or "uncertain" based on SVs from the parental vcf.
-* [needLR_trio](#run-needlr_35_trio): Compares a query sample and two parental samples (maternal and paternal) to a pre-merged, multisample vcf of 500 1KGP samples and annotates the SVs in the query individual. This function uniquely annotates the SVs from the query vcf as being "inherited" or "de novo" based on SVs from the parental vcfs.
-* [needLR_custom_controls](#run-needlr_35_custom_controls): Compares one query vcf to a pre-merged, multisample vcf of a control/unaffected cohort of samples defined by the user and annotates the SVs in the query individual.
-* [needLR_cohort](#run-needlr_35_cohort): Accepts a pre-merged, multisample vcf of an affected cohort and annotates the SVs across the cohort, identifying SVs that are present in one or more affected individuals and absent from the 500 1KGP control samples.
-* [needLR_annotate_bed](#run-needlr_35_annotate_bed): Annotates any 10-colunm bed file with needLR annotations
+* [needLR_basic](#run-needlr_v35_basic): Compares one query vcf to a pre-merged, multisample vcf of 500 1KGP samples and annotates the SVs in the query individual.
+* [needLR_duo](#run-needlr_v35_duo): Compares a query sample and parental sample to a pre-merged, multisample vcf of 500 1KGP samples and annotates the SVs in the query individual. This function uniquely annotates the SVs from the query vcf as being "inherited" or "uncertain" based on SVs from the parental vcf.
+* [needLR_trio](#run-needlr_v35_trio): Compares a query sample and two parental samples (maternal and paternal) to a pre-merged, multisample vcf of 500 1KGP samples and annotates the SVs in the query individual. This function uniquely annotates the SVs from the query vcf as being "inherited" or "de novo" based on SVs from the parental vcfs.
+* [needLR_custom_controls](#run-needlr_v35_custom_controls): Compares one query vcf to a pre-merged, multisample vcf of a control/unaffected cohort of samples defined by the user and annotates the SVs in the query individual.
+* [needLR_cohort](#run-needlr_v35_cohort): Accepts a pre-merged, multisample vcf of an affected cohort and annotates the SVs across the cohort, identifying SVs that are present in one or more affected individuals and absent from the 500 1KGP control samples.
+* [needLR_annotate_bed](#run-needlr_v35_annotate_bed): Annotates any 10-colunm bed file with needLR annotations
 
 >[!NOTE]
 >needLR is currently optimized for sniffles_v2.6.2 SV calling, truvari_v4.2.2 merging, and all backend annotation data is based on the GRCh38 reference genome
@@ -122,23 +122,9 @@ chmod +x script.sh
 
 #### Example:
 ```
-./needLR_v3.5_basic.sh -g /file/path/to/reference/genome.fa -l /file/path/to/vcf_list.txt
-```
-
-## RUN needLR_v3.5_annotate_bed
->[!NOTE] 
->This command functionally replaces needLR_3.4_annotate_multisample but implements different flags
-
-#### needLR_v3.5_annotate_bed takes 2 required arguments:
-
-| Flag | Description |
-| :------------ |:-------------|
-|-g| A fasta file for a reference genome (we use the hg38 reference recommended [here](https://lh3.github.io/2017/11/13/which-human-reference-genome-to-use))|
-|-b| A 10-column .bed file. Columns 1-4 are chr, start, end, SV type, SV length. Columns 6-10 can be any other data (zygosity/ allele frequency/ etc.). Remaining columns should have a placeholder character.
-
-#### Example:
-```
-./needLR_v3.5_annotate_bed.sh -g /file/path/to/reference/genome.fa -b /file/path/to/bed_list.txt
+./needLR_v3.5_basic.sh \
+-g /file/path/to/reference/genome.fa \
+-l /file/path/to/vcf_list.txt
 ```
 
 ## RUN needLR_v3.5_duo
@@ -155,7 +141,10 @@ chmod +x script.sh
 
 #### Example:
 ```
-./needLR_v3.5_duo.sh -g /file/path/to/reference/genome.fa -p /file/path/to/proband.vcf.gz -r /file/path/to/parent.vcf.gz
+./needLR_v3.5_duo.sh \
+-g /file/path/to/reference/genome.fa \
+-p /file/path/to/proband.vcf.gz \
+-r /file/path/to/parent.vcf.gz
 ```
 
 >[!NOTE]
@@ -176,7 +165,11 @@ chmod +x script.sh
 
 #### Example:
 ```
-./needLR_v3.5_trio.sh -g /file/path/to/reference/genome.fa -p /file/path/to/proband.vcf.gz -r /file/path/to/parent1.vcf.gz -R /file/path/to/parent2.vcf.gz
+./needLR_v3.5_trio.sh \
+-g /file/path/to/reference/genome.fa \
+-p /file/path/to/proband.vcf.gz \
+-r /file/path/to/parent1.vcf.gz \
+-R /file/path/to/parent2.vcf.gz
 ```
 
 >[!NOTE]
@@ -202,7 +195,11 @@ bcftools view -i '(INFO/SVTYPE="BND") || (INFO/SVTYPE="INS" || INFO/SVTYPE="DEL"
 ```
 #### 2) Merge the preprocessed vcfs using bcftools merge and tabix the output (where sample_path_list.txt is a list of all of the sample vcfs to merge in the order they should be in). This merge only merges exact variant matches and outputs a multisample vcf
 ```
-bcftools merge -m none --force-samples -l sample_path_list.txt -Oz -o bcftools_merged.vcf.gz
+bcftools merge \
+-m none \
+--force-samples \
+-l sample_path_list.txt \
+-Oz -o bcftools_merged.vcf.gz
 
 tabix bcftools_merged.vcf.gz
 ```
@@ -210,7 +207,18 @@ tabix bcftools_merged.vcf.gz
 #### 3) Use Truvari to further merge the bcftools-merged vcf. Below are the parameters used in needLR_v3.5 itself (these can be customized). Sort, gzip, and tabix the Truvari merged output
 
 ```
-truvari collapse -i bcftools_merged.vcf.gz -o truvari_merged.vcf -c truvari_collapsed.vcf -f reference_gemome.fa -k common -s 50 -S 10000000 -r 2000 -p 0 -P 0.2 -O 0.2
+truvari collapse \
+-i bcftools_merged.vcf.gz \
+-o truvari_merged.vcf \
+-c truvari_collapsed.vcf \
+-f reference_gemome.fa \
+-k common \
+-s 50 \
+-S 10000000 \
+-r 2000 \
+-p 0 \
+-P 0.2 \
+-O 0.2
 
 bcftools sort truvari_merged.vcf > truvari_merged_sorted.vcf
 
@@ -220,7 +228,12 @@ tabix truvari_merged_sorted.vcf.gz
 ```
 #### Example:
 ```
-./needLR_v3.5_custom_controls.sh -g /file/path/to/reference/genome.fa -l /file/path/to/list.txt -t /file/path/to/truvari_merged_sorted.vcf.gz -n /file/path/to/sample_names.txt -s 100
+./needLR_v3.5_custom_controls.sh \
+-g /file/path/to/reference/genome.fa \
+-l /file/path/to/list.txt \
+-t /file/path/to/truvari_merged_sorted.vcf.gz \
+-n /file/path/to/sample_names.txt \
+-s 100
 ```
 
 #### 4) If you wish to combine your control sample set with the 1KGP 500 sample control vcf, you can do another Truvari merge (where sample_path_list2.txt is a file with the full file path to truvari_merged_sorted.vcf.gz and /needLR_v3.5_local/backend_files/UWONT_500_sniffles_2.6.2_preproc2_T31_v4.2.2.vcf.gz) 
@@ -228,11 +241,25 @@ tabix truvari_merged_sorted.vcf.gz
 #### Note: Remember to add 500 to the total number of samples (flag -n)
 
 ```
-bcftools merge -m none --force-samples -l sample_path_list2.txt -Oz -o bcftools_merged2.vcf.gz
+bcftools merge \
+-m none \
+--force-samples \
+-l sample_path_list2.txt \
+-Oz -o bcftools_merged2.vcf.gz
 
 tabix bcftools_merged2.vcf.gz
 
-truvari collapse -i bcftools_merged2.vcf.gz -o truvari_merged2.vcf -c truvari_collapsed2.vcf -f reference_gemome.fa -k common -s 50 -S 10000000 -r 2000 -p 0 -P 0.2 -O 0.2
+truvari collapse -i bcftools_merged2.vcf.gz \
+-o truvari_merged2.vcf \
+-c truvari_collapsed2.vcf \
+-f reference_gemome.fa \
+-k common \
+-s 50 \
+-S 10000000 \
+-r 2000 \
+-p 0 \
+-P 0.2 \
+-O 0.2
 
 bcftools sort truvari_merged2.vcf > truvari_merged2_sorted.vcf
 
@@ -243,10 +270,87 @@ tabix truvari_merged2_sorted.vcf.gz
 
 #### Example:
 ```
-./needLR_v3.5_custom_controls.sh -g /file/path/to/reference/genome.fa -l /file/path/to/list.txt -t /file/path/to/truvari_merged2_sorted.vcf.gz -n /file/path/to/sample_names.txt -s 600
+./needLR_v3.5_custom_controls.sh \
+-g /file/path/to/reference/genome.fa \
+-l /file/path/to/list.txt \
+-t /file/path/to/truvari_merged2_sorted.vcf.gz \
+-n /file/path/to/sample_names.txt \
+-s 600
 ```
 
 ## RUN needLR_v3.5_cohort
+
+#### needLR_v3.5_cohort takes 4 required arguments:
+
+| Flag | Description |
+| :------------ |:-------------|
+|-g| A fasta file for a reference genome (we use the hg38 reference recommended [here](https://lh3.github.io/2017/11/13/which-human-reference-genome-to-use))|
+|-v| A gzipped and tabixed truvari-merged query cohort vcf|
+|-a| A .txt file list of sample names in the order they are in -v  |
+|-d| The number of samples in -v |
+
+#### Note: The input query cohort vcf should be generated using all of the same parameters as the 1KGP control samples:
+
+```
+        sniffle_v2.6.2_ \
+            --input sample.bam \
+            --reference hg38_reference.fa \
+            --output-rnames \
+            --vcf sample.vcf \
+            --allow-overwrite \
+            --tandem-repeats human_GRCh38_no_alt_analysis_set.trf.bed
+```
+```
+bcftools merge -m none --force-samples -l COHORT_vcf_path_list.txt -Oz -o COHORT_merged.vcf.gz
+
+tabix bcftools_merged.vcf.gz
+
+truvari_v4.2.2 collapse \
+-i COHORT_merged.vcf.gz \
+-o truvari_merged_COHORT.vcf \
+-c truvari_collapsed_COHORT.vcf \
+-f reference_gemome.fa \
+-k common \
+-s 50 \
+-S 10000000 \
+-r 2000 \
+-p 0 \
+-P 0.2 \
+-O 0.2
+
+bcftools sort truvari_merged_COHORT.vcf > truvari_merged_COHORT_sorted.vcf
+
+truvari_merged_COHORT_sorted.vcf
+
+tabix truvari_merged_COHORT_sorted.vcf.gz
+```
+
+#### Example:
+```
+./needLR_v3.5_cohort.sh \
+-g /file/path/to/reference/genome.fa \
+-v truvari_merged_COHORT_sorted.vcf.gz 
+-a query_sample_names.txt \
+-d 100
+```
+
+## RUN needLR_v3.5_annotate_bed
+>[!NOTE] 
+>This command functionally replaces needLR_3.4_annotate_multisample but implements different flags
+
+#### needLR_v3.5_annotate_bed takes 2 required arguments:
+
+| Flag | Description |
+| :------------ |:-------------|
+|-g| A fasta file for a reference genome (we use the hg38 reference recommended [here](https://lh3.github.io/2017/11/13/which-human-reference-genome-to-use))|
+|-b| A 10-column .bed file. Columns 1-4 are chr, start, end, SV type, SV length. Columns 6-10 can be any other data (zygosity/ allele frequency/ etc.). Remaining columns should have a placeholder character.
+
+#### Example:
+```
+./needLR_v3.5_annotate_bed.sh \
+-g /file/path/to/reference/genome.fa \
+-b /file/path/to/bed_list.txt
+```
 
 ## OUTPUT
 
