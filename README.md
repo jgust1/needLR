@@ -361,7 +361,7 @@ The output files will be:
 |:------------|:-------------|
 |{SAMPLE_ID}_RESULTS.txt| Annotated query or cohort SVs (the main output)|
 |{SAMPLE_ID}_RESULTS_unique.txt| Annotated SVs that are unique to the query sample (not seen in the control cohort) |
-|{SAMPLE_ID}_RESULTS_0.01.txt| Annotated SVs with an AF <=0.01  (in realation to the control cohort)|
+|{SAMPLE_ID}_RESULTS_0.01.txt| Annotated SVs with an AF <=0.01  (in relation to the control cohort)|
 |{SAMPLE_ID}_RESULTS_cohort_unique.txt| SVs unique to query cohort (needLR_cohort only)|
 |{SAMPLE_ID}_RESULTS.vcf.gz| Annotated query SVs in vcf format |
 |{SAMPLE_ID}_RESULTS.vcf.gz.tbi | Tabix'd vcf |
