@@ -231,7 +231,7 @@ tabix truvari_merged_sorted.vcf.gz
 ./needLR_v3.5_custom_controls.sh \
 -g /file/path/to/reference/genome.fa \
 -l /file/path/to/list.txt \
--t /file/path/to/truvari_merged_sorted.vcf.gz \
+-c /file/path/to/truvari_merged_sorted.vcf.gz \
 -n /file/path/to/sample_names.txt \
 -s 100
 ```
@@ -273,7 +273,7 @@ tabix truvari_merged2_sorted.vcf.gz
 ./needLR_v3.5_custom_controls.sh \
 -g /file/path/to/reference/genome.fa \
 -l /file/path/to/list.txt \
--t /file/path/to/truvari_merged2_sorted.vcf.gz \
+-c /file/path/to/truvari_merged2_sorted.vcf.gz \
 -n /file/path/to/sample_names.txt \
 -s 600
 ```
