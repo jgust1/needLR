@@ -274,8 +274,8 @@ tabix truvari_merged2_sorted.vcf.gz
 -g /file/path/to/reference/genome.fa \
 -l /file/path/to/list.txt \
 -c /file/path/to/truvari_merged2_sorted.vcf.gz \
--n /file/path/to/sample_names.txt \
--s 600
+-s /file/path/to/sample_names.txt \
+-n 600
 ```
 
 ## RUN needLR_v3.5_cohort
