@@ -191,6 +191,7 @@ comparatorHelp() {
     -O                     : [ output directory name (default is needLR_output relative to current directory) ]
     -C                     : [ full path to a gzipped and tabix indexed control cohort vcf ]
     -T                     : [ additional CPU threads to pass to bcftools ] 
+    -S                     : [ subpopulation names and counts, provided as a .csv/.tsv file or a , separated list of : pairs ]
 
     """
 }
@@ -205,12 +206,12 @@ annotateHelp() {
 
     
     Additional options:
-    - T     : [ additional CPU threads to pass to bcftools ] 
-    - C     : [ full path to a control cohort vcf ]
-    - L     : [ .txt file list of full file paths to gzipped query vcfs ]
-    - Q     : [ full path to a truvari-merged query cohort vcf ]
-    - O     : [ output directory name (default is needLR_output relative to current directory) ]
-    - S     : [ subpopulation names and counts, provided as a .csv/.tsv file or a , separated list of : pairs ]
+    -T     : [ additional CPU threads to pass to bcftools ] 
+    -C     : [ full path to a control cohort vcf ]
+    -L     : [ .txt file list of full file paths to gzipped query vcfs ]
+    -Q     : [ full path to a truvari-merged query cohort vcf ]
+    -O     : [ output directory name (default is needLR_output relative to current directory) ]
+    -S     : [ subpopulation names and counts, provided as a .csv/.tsv file or a , separated list of : pairs ]
 
     General Annotation options:
     --all    :   [ annotate VCF with all available options listed below (default TRUE) ]
@@ -244,8 +245,8 @@ bedHelp() {
     positional parameters  : [ full path to input bed files ]
     
     Additional options:
-    - L     : [ .txt file list of full file paths to query beds ]
-    - O     : [ output directory name (default is needLR_output relative to current directory) ]
+    -L     : [ .txt file list of full file paths to query beds ]
+    -O     : [ output directory name (default is needLR_output relative to current directory) ]
 
     """
 }
