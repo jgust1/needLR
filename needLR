@@ -5,7 +5,7 @@ set -euo pipefail
 
 version=4.0
 OUTPUTDIR="$(pwd)/needLR_output"
-temp=$(mktemp -u -t needlr.temp.XXXXX)
+#temp=$(mktemp -u -t needlr.temp.XXXXX)
 
 thisscript=$(realpath "$0")
 scriptpath=${thisscript%/*}
@@ -450,6 +450,13 @@ do
     esac
 done
 
+temp="${OUTPUTDIR}/needlr.temp"
+
+if [[ ! -d ${OUTPUTDIR} ]]
+then
+    mkdir -p ${OUTPUTDIR}
+fi
+
 if [ ${#alcannotations} -gt 0 ]
 then
     SELECTEDANNO=${alcannotations}
@@ -873,19 +880,19 @@ collapse_gt() {
     then
         echo "keeping dv/dr"
         cat "${input}" | \
-        $scriptpath/src/./rearrange.awk \
-         --assign step=$STEP \
-         --assign ncohort=$nquery \
-         --assign ncontrols="${TOTAL_SAMPLES}" \
+        awk -f $scriptpath/src/rearrange.awk \
+         -v step=$STEP \
+         -v ncohort=$nquery \
+         -v ncontrols="${TOTAL_SAMPLES}" \
          | tr -s '\t' > "${output}_temp3.txt"
     else
         echo "keeping only gt columns"
         QUERY_END=$(( 7 + (nquery-1)  * 3 ))
         cat "${input}" | \
-        $scriptpath/src/./rearrange_dropdvdr.awk \
-         --assign step="${STEP}" \
-         --assign ncohort=$nquery \
-         --assign ncontrols="${TOTAL_SAMPLES}" \
+        awk -f $scriptpath/src/rearrange_dropdvdr.awk \
+         -v step="${STEP}" \
+         -v ncohort=$nquery \
+         -v ncontrols="${TOTAL_SAMPLES}" \
          | tr -s '\t' > "${output}_temp3.txt"
     fi
     # final output for this function is "${output}_temp3.txt"
@@ -920,10 +927,10 @@ make_supp_vecc() {
     if [[ "${nquery}" -gt 1 ]]
     then
         echo "creating support vector for query cohort"
-        cat "${input}" | $scriptpath/src/./supvec.awk \
-            --assign start="${Q_GT_START}" \
-            --assign end="${Q_GT_END}" \
-            --assign step="${Q_GT_STEP}" | 
+        cat "${input}" | awk -f $scriptpath/src/supvec.awk \
+            -v start="${Q_GT_START}" \
+            -v end="${Q_GT_END}" \
+            -v step="${Q_GT_STEP}" | 
             awk 'BEGIN{OFS="\t"}{printf("%s\t\n", $0)}'> "${output}_temp4.1.txt"
     else
         cat "${input}" > "${output}_temp4.1.txt"
@@ -931,10 +938,10 @@ make_supp_vecc() {
 
     # Always make one for controls
     echo "creating support vector for controls"
-    cat "${output}_temp4.1.txt" | $scriptpath/src/./supvec.awk \
-        --assign start="${CONTROL_GT_START}" \
-        --assign end="${CONTROL_GT_END}" \
-        --assign step=1 > "${output}_temp4.txt"
+    cat "${output}_temp4.1.txt" | awk -f $scriptpath/src/supvec.awk \
+        -v start="${CONTROL_GT_START}" \
+        -v end="${CONTROL_GT_END}" \
+        -v step=1 > "${output}_temp4.txt"
 
     ##Rearrange columns so SUPP_VECs are columns 8/9
     endcol=$( head -n1 ${output}_temp4.txt | awk '{print NF}' )
@@ -966,11 +973,11 @@ make_supp_vecc() {
     fi
 
     echo "calculating population stratified frequency statistics"
-    cat "${output}_temp5.txt" | $scriptpath/src/./annocustomcontrol.awk \
-        --assign controlbreaks=$subpopcounts \
-        --assign ncohort=$nquery \
-        --assign ncontrols="${TOTAL_SAMPLES}" \
-        --assign step=$querycols > "${output}_temp6.txt"
+    cat "${output}_temp5.txt" | awk -f $scriptpath/src/annocustomcontrol.awk \
+        -v controlbreaks=$subpopcounts \
+        -v ncohort=$nquery \
+        -v ncontrols="${TOTAL_SAMPLES}" \
+        -v step=$querycols > "${output}_temp6.txt"
 
 
     ##This matches the SUPP_VEC string(s) to the sample list (and lists which 1KGP samples have the SV)
@@ -981,20 +988,20 @@ make_supp_vecc() {
         echo "Matching vector support with cohort sample names"
         cohortnames=$(echo "${COHORT_SAMPLE_NAME_LIST[@]}" | tr ' ' ',')
         cat "${output}_temp6.txt" | \
-            $scriptpath/src/./matchSuppVecc.awk \
-            --assign names=$cohortnames \
-            --assign colindex=8 > "${output}_temp6.1.txt"
+            awk -f $scriptpath/src/matchSuppVecc.awk \
+            -v names=$cohortnames \
+            -v colindex=8 > "${output}_temp6.1.txt"
         echo "Matching vector support with control sample names"
         cat "${output}_temp6.1.txt" | \
-            $scriptpath/src/./matchSuppVecc.awk \
-            --assign names=$names \
-            --assign colindex=9 > "${output}_temp7.txt"
+            awk -f $scriptpath/src/matchSuppVecc.awk \
+            -v names=$names \
+            -v colindex=9 > "${output}_temp7.txt"
     else
         echo "Matching vector support with control sample names"
         cat "${output}_temp6.txt" | \
-            $scriptpath/src/./matchSuppVecc.awk \
-            --assign names=$names \
-            --assign colindex=8 > "${output}_temp7.txt"
+            awk -f $scriptpath/src/matchSuppVecc.awk \
+            -v names=$names \
+            -v colindex=8 > "${output}_temp7.txt"
     fi
     # final output for this function is ${output}_temp7.txt
     echo -e "\nDone with Step 4\n"
@@ -1023,8 +1030,8 @@ hwe() {
     ## file output names preserved for readability
     echo "calculating HWE statistics"
     cat "${output}_temp7.txt" | \
-        $scriptpath/src/./hwe.awk \
-        --assign totsamples="${TOTAL_SAMPLES}" > "${output}_temp11.txt"
+        awk -f $scriptpath/src/hwe.awk \
+        -v totsamples="${TOTAL_SAMPLES}" > "${output}_temp11.txt"
 
     #This lists all population counts/frequencies, allele counts/frequencies, and HWE info
     echo "Tabulating subpopulation and population count/frequencies"
@@ -1035,24 +1042,24 @@ hwe() {
         subpopcounts="${TOTAL_SAMPLES}"
     fi
     cat "${output}_temp11.txt" | \
-        $scriptpath/src/./assign_counts.awk \
-        --assign ncontrols="${TOTAL_SAMPLES}" \
-        --assign ncohort="$nquery" \
-        --assign step=$querycols \
-        --assign controlcounts="${subpopcounts}" > "${output}_temp12.txt"
+        awk -f $scriptpath/src/assign_counts.awk \
+        -v ncontrols="${TOTAL_SAMPLES}" \
+        -v ncohort="$nquery" \
+        -v step=$querycols \
+        -v controlcounts="${subpopcounts}" > "${output}_temp12.txt"
 
     echo "Assigning HWE equilibrium"
     #This determines if the SV is in HWE
     hwecol=$( awk 'NR==1{print NF-3}' "${output}_temp12.txt" )
 
     cat "${output}_temp12.txt" | \
-        $scriptpath/src/./hwe_check.awk | \
+        awk -f $scriptpath/src/hwe_check.awk | \
         cut -f 1-"${hwecol}" > "${output}_temp13.txt"
 
     echo "Assigning SV end position"
     ##This adds the absolute value of the length of the SV to the start position (DELs are listed as negative lengths in the vcf, but the range is from the start position plus that number of nucleotides)
     cat "${output}_temp13.txt" | \
-        $scriptpath/src/./svlen.awk > "${output}_control_overlap.txt"
+        awk -f $scriptpath/src/svlen.awk > "${output}_control_overlap.txt"
 
     # final output for this funciton is ${output}_control_overlap.txt
     echo -e "\nDone with Step 5\n"
@@ -1243,8 +1250,8 @@ geneIndexedAnnotations() {
 
     # Consolidate multigene rows
     echo "Consolidating multigene rows"
-    cat $input | $scriptpath/src/./consolidateRows.awk \
-        --assign indexField=$indexField > ${output}_consolidated.txt
+    cat $input | awk -f $scriptpath/src/consolidateRows.awk \
+        -v indexField=$indexField > ${output}_consolidated.txt
     
 
     ##Replace empty fields with "."

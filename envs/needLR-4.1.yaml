@@ -9,3 +9,5 @@ dependencies:
   - gawk=5.3.1
   - coreutils=9.5
   - sed>=4.7
+  - gzip >=1.9
+  - grep >=3.1

@@ -1,4 +1,4 @@
-#! /bin/awk -f
+#! /usr/bin/env awk
 
 #expects ncontrols, ncohort, step (for cohort, not controls), controlcounts
 
