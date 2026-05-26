@@ -5,20 +5,12 @@ set -euo pipefail
 
 version=4.0
 OUTPUTDIR="$(pwd)/needLR_output"
-<<<<<<< HEAD
 #temp=$(mktemp -u -t needlr.temp.XXXXX)
 
 thisscript=$(realpath "$0")
 scriptpath=${thisscript%/*}
 #refloc=REFLOCPATH
 refloc=/home/mgaley/needLR_manu/needLR/backend_files
-=======
-
-thisscript=$(realpath "$0")
-scriptpath=${thisscript%/*}
-refloc=REFLOCPATH
-
->>>>>>> main
 FILTERPASS=0 #this setting is to include non-passing variants or not. default is to filter nothing.
 run1kg=1 #this setting determines whether or not to run 1kg specific annotation scripts or use a custom control set
 THREADS=1
@@ -460,14 +452,11 @@ done
 
 temp="${OUTPUTDIR}/needlr.temp"
 
-<<<<<<< HEAD
 if [[ ! -d ${OUTPUTDIR} ]]
 then
     mkdir -p ${OUTPUTDIR}
 fi
 
-=======
->>>>>>> main
 if [ ${#alcannotations} -gt 0 ]
 then
     SELECTEDANNO=${alcannotations}
