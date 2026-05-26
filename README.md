@@ -78,7 +78,10 @@ needLR_v4.0 has three subcommands:
 
 ## INSTALLATION AND SET UP
 
-Please install needLR using conda or docker/podman/singularity. 
+Please install needLR using conda or Docker/podman/apptainer. 
+
+>[!NOTE]
+>needLR relies heavily on bash scripts and was developed in bash version 4.4-release. It was also tested using bash version 5.0-relase. There is a known incompatibility with bash versions earlier than 4.4-release. If using an earlier version of bash, please try the docker/podman/apptainer container installation method.
 
 ### Conda
 
@@ -88,23 +91,6 @@ Build an environment for needLR to run in like so:
 conda create -n needLR-4.0 -c bioconda -c conda-forge needlr=4.0
 conda activate needLR-4.0
 ```
-
-### Docker/Podman
-
-```
-docker pull quay.io/biocontainers/needlr
-```
-*or*
-
-```
-podman pull quay.io/biocontainers/needlr
-```
-
-
-To run using docker, append `docker run quay.io/biocontainers/needlr` to the beginning of any needLR command.
-
-
-Example: `docker run quay.io/biocontainers/needlr needLR annotate example.vcf.gz`
 
 
 Alternatively, you can make a custom conda installation following these steps:
@@ -123,6 +109,24 @@ tar -xvzf needLR_v4.0_backend_files.tar.gz
 If using a custom installation, you **must** use flag `-B` with your path to the `backend_files` folder downloaded in step 4 above.
 
 
+### Docker
+
+Pull needLR from dockerhub:
+
+```
+docker pull miragale/needlr:latest
+```
+
+When running with docker, your command must be modified to mount input and output locations, and needLR **must** be given an output location. Please follow this pattern:
+
+```
+INPUTDIR=/full/path/to/input/loc
+OUTPUTDIR=/full/path/to/output/loc
+
+docker run -v ${INPUTDIR}:/mnt/inputs \
+  -v ${OUTPUTDIR}:/mnt/outputs \
+  miragale/needlr:latest needLR {subcommand} -O /mnt/outputs/needLR_output <more options> /mnt/inputs/{your.vcf.gz}
+```
 
 ### Dependencies included in package:
 
@@ -152,6 +156,9 @@ If using a custom installation, you **must** use flag `-B` with your path to the
    ```
 
 Alternatively, you can run needLR through our nextflow wrapper, which can speed up running many samples at once when a server or cluster with many cpus is available. [See the documentation here.](https://github.com/millerlaboratory/needLR/blob/nextflow/nextflow/nextflow_readme.md)
+
+
+
 
 ### Subcommand: annotate
 
@@ -202,6 +209,14 @@ VCF is limited to SVs on chr22.
 
 Output for this example: `examples/outputs/single_genome_example_chr22_needLR_1kg_v4.0/`
 
+This example is included in the docker image and can be run like so:
+
+```
+OUTPUTDIR=/full/path/to/output/loc
+
+docker run -v ${OUTPUTDIR}:/mnt/outputs \
+  miragale/needlr:latest needLR annotate -O /mnt/outputs/needLR_output /mnt/needLR_examples/inputs/single_genome_example_chr22.vcf.gz
+```
 
 
 Compare a list of query VCFs to a different merged VCF and annotate with only OMIM and hiconfidence regions
