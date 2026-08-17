@@ -32,6 +32,7 @@ truvari_O=0.2
 
 RUNSUBPOPS=0
 MERGECONTROLS=0
+MELTCONTROLS=0
 
 # annotation filenames
 
@@ -305,6 +306,7 @@ validateVCF () {
 truvari_ctrl_merge () {
     local ctrl_files=$1
     local output=$2
+    local reorder=$3
 
     query_list=( $(echo ${ctrl_files} | tr ',' ' ') )
 
@@ -366,14 +368,27 @@ truvari_ctrl_merge () {
         -o "${output}_bcftools_merged_with_ctrl_temp.vcf.gz" \
         --write-index=tbi
 
-    newlines=$( zgrep -v ^# ${output}_bcftools_merged_with_ctrl_temp.vcf.gz | wc -l | tr -s ' ' | cut -f1 -d ' ')
+    if [[ ${reorder}!="no_reorder" ]]
+    then
+        bcftools view --threads $THREADS \
+        --force-samples \
+        --samples-file ${reorder} \
+        -O z \
+        -o "${output}_bcftools_merged_with_ctrl_temp.ordered.vcf.gz" \
+        --write-index=tbi \
+        "${output}_bcftools_merged_with_ctrl_temp.vcf.gz"
+    else
+        mv "${output}_bcftools_merged_with_ctrl_temp.vcf.gz" "${output}_bcftools_merged_with_ctrl_temp.ordered.vcf.gz"
+    fi
+
+    newlines=$( zgrep -v ^# ${output}_bcftools_merged_with_ctrl_temp.ordered.vcf.gz | wc -l | tr -s ' ' | cut -f1 -d ' ')
     delta=$(( currentlines-newlines ))
     echo "Added $delta lines"
     currentlines=$newlines
 
     #Truvari collapse (T31)
     echo "Running truvari collapse"
-    truvari collapse -i "${output}_bcftools_merged_with_ctrl_temp.vcf.gz" \
+    truvari collapse -i "${output}_bcftools_merged_with_ctrl_temp.ordered.vcf.gz" \
         -o "${output}_truvari_merged_temp.vcf" \
         -c "${output}_truvari_collapsed_temp.vcf" \
         -k "${truvari_k}" \
@@ -383,10 +398,8 @@ truvari_ctrl_merge () {
         -p "${truvari_p}" \
         -P "${truvari_P}" \
         -O "${truvari_O}"
-
-    bgzip "${output}_truvari_merged_temp.vcf"
-    tabix -p vcf "${output}_truvari_merged_temp.vcf.gz"
-    mv "${output}_truvari_merged_temp.vcf.gz" > "${output}.truvari_merged_controls.vcf.gz"
+    
+    bcftools sort -O z -o "${output}.truvari_merged_controls.vcf.gz" --write-index=tbi "${output}_truvari_merged_temp.vcf" 
 
     echo -e "\nDone\n"
 }
@@ -432,6 +445,7 @@ do
 
                 all) SELECTEDANNO=$(echo ${ALLANNOTATIONLIST[@]} | tr ' ' ',') ;;
                 keep1kg) MERGECONTROLS=1 ;;
+                melt1kg) MELTCONTROLS=1 ;;
                 *) echo "option $longoption not recognized, ignoring" ;;
             esac ;;
         H) help
@@ -496,6 +510,10 @@ then
         elif [[ *"$inputExt"* == *"vcf"* ]]
         then
             INPUT_VCFS+=( $(validateVCF $vcf) )
+        else
+            echo "Error: File extension $inputExt not recognized, quitting"
+            echo "You provided: $vcf"
+            exit 1
         fi
     done
 elif [[ -z "${QUERY_VCFS+x}" ]]
@@ -584,10 +602,10 @@ then
         if [[ ${SUBPOPS} =~ "tsv" || ${SUBPOPS} =~ "csv" ]]
         then
             # read contents of file and then reset subpops and control vcf variables
-            cat ${SUBPOPS} | tr ',' '\t' | sort -k2,2 > $temp.subpop.labels.tsv
-            cut -f1 $temp.subpop.labels.tsv > $temp.subpop.ordered.names.txt
-            labelnames=( $(cut -f2 $temp.subpop.labels.tsv| uniq ) )
-            cut -f2 $temp.subpop.labels.tsv | awk '{subpops[$0]+=1}END{for(i in subpops){print i,subpops[i]}}' > $temp.subpop.unordered.counts.txt
+            cat ${SUBPOPS} | tr ',' '\t' | sort -k2,2 > $temp.custom_ctrls_names.tsv
+            cut -f1 $temp.custom_ctrls_names.tsv > $temp.subpop.ordered.names.txt
+            labelnames=( $(cut -f2 $temp.custom_ctrls_names.tsv | uniq ) )
+            cut -f2 $temp.custom_ctrls_names.tsv | awk '{subpops[$0]+=1}END{for(i in subpops){print i,subpops[i]}}' > $temp.subpop.unordered.counts.txt
             subpoplevels=()
             for label in ${labelnames[@]}
             do
@@ -603,10 +621,37 @@ then
                 --write-index=tbi \
                 ${CTRL_MERGED}
             CTRL_MERGED=$temp.custom_control.reordered.vcf.gz
+        else
+            # subpop labels are supplied as pairs
+            # get the names of custom control samples from the merged vcf
+            # it is assummed that the samples are in order.
+            CUSTOM_CTRL_SAMPLE_NAMES=( $(bcftools view -h ${CTRL_MERGED} | grep -v ^## | cut -f10-) )
+            subgroups=( $(echo ${SUBPOPS} | tr ',' ' ') )
+            offset=0
+            echo "provided subgroups: ${subgroups}"
+            
+            if [ -f "$temp.custom_ctrls_names.tsv" ]
+            then
+                rm $temp.custom_ctrls_names.tsv
+            fi
+            for group in ${subgroups[@]}
+            do
+                grouplabels=( $(echo $group | tr ':' ' ') )
+                label=${grouplabels[0]}
+                labelcount=${grouplabels[1]}
+                for((i=0;i<$labelcount;i++))
+                do
+                    sampleindex=$(($offset+$i))
+                    echo -e "${CUSTOM_CTRL_SAMPLE_NAMES[$sampleindex]}\t${label}" >> $temp.custom_ctrls_names.tsv
+                done
+                offset=$(($offset+$labelcount))
+            done
         fi
         #if SUBPOPS is not a file, make sure there are no repeats
         if [ ${MERGECONTROLS} -eq 0 ]
         then
+            echo "Not merging controls with 1kg"
+            # if not merging with 1kg controls, report counts for subgroups
             subgroups=( $(echo ${SUBPOPS} | tr ',' ' ') )
             SUBGROUP_LABELS=()
             SUBGROUP_COUNTS=()
@@ -627,30 +672,51 @@ then
                 exit 1
             fi
         else
-            truvari_ctrl_merge ${CTRL_MERGED} $temp.custom_control
+            echo "merging provided controls with 1kg controls"
+           # merge with the 1kg controls, optionally collapsing overlapping labels.
+            LABELS_1KG=( AFR AMR EAS EUR SAS )
+            SAMPLE_NAMES_1KG=( $(bcftools view -h ${DATA1KG} | grep -v ^## | cut -f10-) )
+            if [ -f "$temp.1kg_ctrls_names.tsv" ]
+            then
+                rm $temp.1kg_ctrls_names.tsv
+            fi
+            for name in ${SAMPLE_NAMES_1KG[@]}
+            do
+                label=${name##*.} # use shell expansion to get the last '.' separated field with the population name
+                if [[ ${MELTCONTROLS} -eq 0 ]]
+                then
+                    label="${label}_1KG"
+                fi
+                echo -e "${name}\t${label}" >> $temp.1kg_ctrls_names.tsv
+            done
+
+            cat $temp.custom_ctrls_names.tsv $temp.1kg_ctrls_names.tsv | sort -k2,2 > $temp.all_ctrls_names.sorted.tsv
+            cut -f1 $temp.all_ctrls_names.sorted.tsv > $temp.all_ctrls_names.sorted.samples.txt
+            ###########cut -f2 $temp.custom_ctrls_names.sorted.tsv > $temp.custom_ctrls_names.sorted.samples.txt
+            ###DEBUG HERE
+            # add the custom sample names and subgroups to the sample file
+            cat $temp.all_ctrls_names.sorted.tsv
+
+            truvari_ctrl_merge ${CTRL_MERGED} $temp.custom_control $temp.all_ctrls_names.sorted.samples.txt
+
             CTRL_MERGED=$temp.custom_control.truvari_merged_controls.vcf.gz
             CTRL_SAMPLE_NAME_LIST=( $(bcftools view -h ${CTRL_MERGED} | grep -v ^## | cut -f10-) )
             TOTAL_SAMPLES=${#CTRL_SAMPLE_NAME_LIST[@]}
 
-            subgroups=( $(echo ${SUBPOPS} | tr ',' ' ') )
-            SUBGROUP_LABELS=()
+            SUBGROUP_LABELS=( $(cut -f2 $temp.all_ctrls_names.sorted.tsv | uniq ) )
             SUBGROUP_COUNTS=()
             echo "Subpopulation counts are:"
-            for group in ${subgroups[@]}
+            #for label in ${SUBGROUP_LABELS[@]}
+            #do
+            #    count=( $(cut -f2 $temp.all_ctrls_names.sorted.tsv | grep $label | wc -l | tr -s ' ' | cut -d ' ' -f1 ) )
+            #    SUBGROUP_COUNTS+=( $count )
+            #    echo "${label}:$count"
+            #done
+            labelstring=$(echo ${SUBGROUP_LABELS[@]} | tr ' ' ',' )
+            SUBGROUP_COUNTS=( $( cat $temp.all_ctrls_names.sorted.tsv  | awk -F '\t' 'NR==1{subpop=$2;subcount=1}NR>1{if(subpop==$2){subcount+=1}else{print subcount;subcount=1;subpop=$2}}END{print subcount}' ) )
+            for((i=0;i<${#SUBGROUP_COUNTS[@]};i++))
             do
-                grouplabels=( $(echo $group | tr ':' ' ') )
-                SUBGROUP_LABELS+=( ${grouplabels[0]} )
-                SUBGROUP_COUNTS+=( ${grouplabels[1]} )
-                echo "${grouplabels[0]}:${grouplabels[1]}"
-            done
-            LABELS_1KG=( AFR AMR EAS EUR SAS )
-            SAMPLE_NAMES_1KG=( $(bcftools view -h ${DATA1KG} | grep -v ^## | cut -f10-) )
-            for label in ${LABELS_1KG[@]}
-            do
-                count=( $(echo ${SAMPLE_NAMES_1KG} | tr ' ' '\n' | grep -c $label) )
-                SUBGROUP_COUNTS+=( $count )
-                SUBGROUP_LABELS+=( $label )
-                echo "${label}:$count (1kg)"
+                echo "${SUBGROUP_LABELS[$i]} : ${SUBGROUP_COUNTS[$i]}"
             done
             NSUBGROUPS=${#SUBGROUP_LABELS[@]}
         fi
@@ -1444,6 +1510,7 @@ printVCF() {
 
 }
 
+
 printAnnotationHeader() {
     annotationcols=0
     tableheader=()
@@ -1704,6 +1771,7 @@ annotateRun() {
 
     if [[ ${ANALYSISREGION} != "All" ]]
     then
+        echo "CTRL_MERGED is ${CTRL_MERGED}"
         clipRegion ${CTRL_MERGED} $temp.clippedControl.vcf.gz
         CTRL_MERGED=$temp.clippedControl.vcf.gz
     fi

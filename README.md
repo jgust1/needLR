@@ -174,11 +174,14 @@ Additional options:
 |-O| output directory name (default is needLR_output relative to current directory) |
 |-R| restrict analysis to a region (e.g. chr22:12345-23456 **or** chr22)|
 |-L| A .txt file that lists the full file path(s) to the query vcf(s) |
-See above for recommended sniffles2 version/parameters |
+|-S| Path to a .tsv or .csv of control sample names and subgroups **or** a comma separated list of subpopulation counts |
+See above for recommended sniffles2 version/parameters 
 
 General Annotation options
 | | |
 | :------------ |:-------------|
+|--keep1kg| when subgroups are supplied, also include default 1kg SV database |
+|--melt1kg| if subpopulation names provided with -S overlap with 1kg, merge groups |
 |--all| annotate VCF with all available options listed below (default TRUE) |
 
 A la Carte Annotation options
@@ -236,6 +239,22 @@ needLR annotate -Q examples/inputs/merged_cohort_chr22.vcf.gz -R chr22:10731900-
 ```
 
 Output for this example `examples/outputs/merged_cohort_chr22_needLR_1kg_v4.0/`
+
+
+#### Using subpopulations
+
+Provide a comma or tab separated file with sample ids and subpopulation membership with flag `-S`.
+
+For an example, see `inputs/subpop_groups.csv` 
+
+
+Alternatively, you may provide subpopulation names and count pairs with `-S`, following this pattern:
+
+```
+-S AFR:2,EUR:10,EAS:20,CUSTOM:100
+```
+
+If counts are provided with a string, it is assumed that the samples provided in the control cohort are sorted in that order.
 
 
 ### Subcommand: comparator
