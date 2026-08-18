@@ -5,21 +5,22 @@
 BEGIN{
     chr=1;
     pos=2;
+    needlrid=4;
     tempcol=3;
-    ref=4;
-    alt=5;
-    svlen=6;
-    svtype=7;
-    supportvec=8;
-    svgt=9;
-    svvarreads=10;
-    svrefreads=11
-    totalreads=12
+    ref=5;
+    alt=6;
+    svlen=7;
+    svtype=8;
+    supportvec=9;
+    svgt=10;
+    svvarreads=11;
+    svrefreads=12;
+    totalreads=13;
     OFS="\t"
     if(ncohort>1){
-      qsupportvec=8
-      supportvec=9
-      cohort_start=10
+      qsupportvec=9
+      supportvec=10
+      cohort_start=11
     }
     control_haps=ncontrols*2
     cohort_haps=ncohort*2
@@ -31,7 +32,7 @@ BEGIN{
 
 }
 {
-  printroot=sprintf("%s\t%s\t%s\t%s\t%s\t%s\t%s",$chr, $pos, $tempcol, $ref, $alt, $svlen, $svtype)
+  printroot=sprintf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",$chr, $pos, $tempcol, $needlrid, $ref, $alt, $svlen, $svtype)
   printsuffix=""
   # if there is a cohort, calculate cohort-level frequency statistics
   if( ncohort > 1){
@@ -137,7 +138,7 @@ BEGIN{
 
   printf("%s%s\n", printroot, printsuffix) #expecting print stuffix to start with a tab
 }
-#the output format should now be the first 7 columns unaltered, the support vectors, the genotypes and reads dvdr for all cohort samples,
+#the output format should now be the first 8 columns unaltered, the support vectors, the genotypes and reads dvdr for all cohort samples,
 # cohort pop, cohort allele, gt hom, het, homvar for cohort
 # then it should be all of the population gt columns, followed by subpopulation counts, pop_all, subpopulation allele counts, all allele,
 # gt_homwt, gt_het,gt_homvar

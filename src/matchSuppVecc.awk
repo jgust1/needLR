@@ -5,11 +5,12 @@
 BEGIN{
     chr=1;
     pos=2;
+    needlrid=4;
     tempcol=3;
-    ref=4;
-    alt=5;
-    svlen=6;
-    svtype=7;
+    ref=5;
+    alt=6;
+    svlen=7;
+    svtype=8;
     suppvecc=colindex;
     OFS="\t"
     

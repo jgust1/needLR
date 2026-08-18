@@ -147,7 +147,7 @@ docker run -v ${INPUTDIR}:/mnt/inputs \
 `needLR {subcommand} <options> {input.vcf.gz} {input.2.vcf.gz} {more.input.vcf.gz}...`
 
   Global options:
-  ``` -B                     : [ path to folder containing backend files for non-conda custom installation ]
+  ```
    -T                     : [ additional CPU threads to pass to bcftools ]
    -R                     : [ restrict analysis to region (e.g. chr1:23456-34567) ]
    -B                     : [ the full path to needLR's back end file folder, only used in custom installations ]

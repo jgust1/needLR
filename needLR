@@ -16,7 +16,7 @@ run1kg=1 #this setting determines whether or not to run 1kg specific annotation 
 THREADS=1
 ANALYSISREGION="All"
 DATA1KG="$refloc/UWONT_500_sniffles_2.6.2_preproc2_T31_v4.2.2.vcf.gz"
-
+DEBUG=0
 
 # truvari parameters
 
@@ -446,6 +446,7 @@ do
                 all) SELECTEDANNO=$(echo ${ALLANNOTATIONLIST[@]} | tr ' ' ',') ;;
                 keep1kg) MERGECONTROLS=1 ;;
                 melt1kg) MELTCONTROLS=1 ;;
+                debug) DEBUG=1 ;;
                 *) echo "option $longoption not recognized, ignoring" ;;
             esac ;;
         H) help
@@ -860,10 +861,29 @@ truvari_merge () {
 
     ##This parses the Truvari VCF output for relevant information
     echo "Parsing Truvari VCF output"
-    bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t%INFO/SVLEN\t%INFO/SVTYPE[\t%GT\t%DV\t%DR]\n' \
-        "${output}_truvari_merged_temp.vcf" > "${output}_truvari_merged_temp.txt"
+    #bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t%INFO/SVLEN\t%INFO/SVTYPE[\t%GT\t%DV\t%DR]\n' \
+    #    "${output}_truvari_merged_temp.vcf" > "${output}_truvari_merged_temp.txt"
 
-    newlines=$( wc -l ${output}_truvari_merged_temp.txt | tr -s ' ' | cut -f1 -d ' ')
+    bcftools query -f '%CHROM\t%POS\t%INFO/CollapseId:%ID\t%REF\t%ALT\t%INFO/SVLEN\t%INFO/SVTYPE[\t%GT\t%DV\t%DR]\n' \
+        "${output}_truvari_merged_temp.vcf" > "${output}_truvari_merged_temp.txt"   
+
+    bcftools query -f '%ID\t%INFO/CollapseId\t%INFO/MatchId\n' "${output}_truvari_collapsed_temp.vcf" > "${output}_truvari_collapsed_temp.txt"
+
+    cat "${output}_truvari_merged_temp.txt" | awk -F '\t' 'BEGIN{OFS="\t"}{nids=split($3,ids,";");$3=ids[1];print $0}' > "${output}_truvari_merged_reduced.tsv"
+    cat "${output}_truvari_collapsed_temp.txt" | awk -F '\t' 'BEGIN{OFS="\t"}{nids=split($1,ids,";");$1=ids[1];if($1~/needLR/){print $0}}' > "${output}_truvari_collapsed_reduced.tsv"
+
+    needlrids=( $(cut -f1 "${output}_truvari_collapsed_reduced.tsv" ) )
+    matchids=( $(cut -f3 "${output}_truvari_collapsed_reduced.tsv" ) )
+
+    echo "Adding needLR IDs to collapsed variants"
+    for((i=0;i<${#needlrids[@]};i++))
+    do
+        matchid=${matchids[$i]}
+        needlrid=${needlrids[$i]}
+        sed -i "s/${matchid}:/${needlrid},/" "${output}_truvari_merged_reduced.tsv"
+    done
+
+    newlines=$( wc -l "${output}_truvari_merged_reduced.tsv" | tr -s ' ' | cut -f1 -d ' ')
     echo "Truvari output has $newlines lines"
 
     echo -e "\nDone with Step 1\n"
@@ -882,9 +902,9 @@ parse_vcf() {
     echo "Filtering reference only calls"
     if [[ $nquery -gt 1 ]]
     then
-        QUERY_LAST_GT=$(( 7 + ($nquery)*3 ))
+        QUERY_LAST_GT=$(( 8 + ($nquery)*3 ))
 
-        cat $input | awk -v first=7 \
+        cat $input | awk -v first=8 \
         -v last="${QUERY_LAST_GT}" \
         -v step=3 'BEGIN {OFS="\t"}{
         for (i = first; i <= last; i += step) {
@@ -892,7 +912,7 @@ parse_vcf() {
             }
         }' > "${output}_truvari_merged_query_filtered_temp.txt"
     else
-        QUERY_GT=7
+        QUERY_GT=8
         cat $input | awk -v qcol=${QUERY_GT} \
         'BEGIN{OFS="\t"}{if($qcol!="./."){print $0}}' > "${output}_truvari_merged_query_filtered_temp.txt"
     fi
@@ -912,7 +932,7 @@ parse_vcf() {
 
     ##This parses for SVs <=10Mb
     echo "Parsing for SVs <= 10Mb"
-    cat "${output}_temp1.txt" | awk '{if($5 > -10000000 && $5 < 10000000){print $0}}' > \
+    cat "${output}_temp1.txt" | awk '{if($6 > -10000000 && $6 < 10000000){print $0}}' > \
         "${output}_temp2.txt"
 
     newlines=$( wc -l "${output}_temp2.txt" | tr -s ' ' | cut -f1 -d ' ' )
@@ -982,8 +1002,8 @@ make_supp_vecc() {
         echo "dropping query DV/DR columns"
     fi
     ##This creates a SUPP_VEC (like in Jasmine)
-    Q_GT_START=8
-    Q_GT_END=$(( 7 + (nquery*querycols) )) #preserving the closed interval
+    Q_GT_START=9
+    Q_GT_END=$(( 8 + (nquery*querycols) )) #preserving the closed interval
     Q_GT_STEP="${querycols}"
     CONTROL_GT_START=$(( Q_GT_END + 1 ))
     CONTROL_GT_END=$(( CONTROL_GT_START + TOTAL_SAMPLES - 1 )) #preserving the closed interval
@@ -1009,7 +1029,7 @@ make_supp_vecc() {
         -v end="${CONTROL_GT_END}" \
         -v step=1 > "${output}_temp4.txt"
 
-    ##Rearrange columns so SUPP_VECs are columns 8/9
+    ##Rearrange columns so SUPP_VECs are columns 9/10
     endcol=$( head -n1 ${output}_temp4.txt | awk '{print NF}' )
     let endcol=$endcol-1
     SUPP_VEC=$( cat "${output}_temp4.txt" | awk 'NR==1{print NF}' )
@@ -1022,9 +1042,9 @@ make_supp_vecc() {
     #SUPP_VEC=$(( CONTROL_GT_END + 1 )) # the position of the first support vector
 
     echo "Moving support vector(s)"
-    paste <( cut -f 1-7 "${output}_temp4.txt" ) \
+    paste <( cut -f 1-8 "${output}_temp4.txt" ) \
         <( cut -f "${SUPP_VEC}-" "${output}_temp4.txt" ) \
-        <( cut -f "8-${endcol}" "${output}_temp4.txt" ) > "${output}_temp5.txt"
+        <( cut -f "9-${endcol}" "${output}_temp4.txt" ) > "${output}_temp5.txt"
 
 
     ## Calculate population stratified frequency statistics
@@ -1056,18 +1076,18 @@ make_supp_vecc() {
         cat "${output}_temp6.txt" | \
             awk -f $scriptpath/src/matchSuppVecc.awk \
             -v names=$cohortnames \
-            -v colindex=8 > "${output}_temp6.1.txt"
+            -v colindex=9 > "${output}_temp6.1.txt"
         echo "Matching vector support with control sample names"
         cat "${output}_temp6.1.txt" | \
             awk -f $scriptpath/src/matchSuppVecc.awk \
             -v names=$names \
-            -v colindex=9 > "${output}_temp7.txt"
+            -v colindex=10 > "${output}_temp7.txt"
     else
         echo "Matching vector support with control sample names"
         cat "${output}_temp6.txt" | \
             awk -f $scriptpath/src/matchSuppVecc.awk \
             -v names=$names \
-            -v colindex=8 > "${output}_temp7.txt"
+            -v colindex=9 > "${output}_temp7.txt"
     fi
     # final output for this function is ${output}_temp7.txt
     echo -e "\nDone with Step 4\n"
@@ -1155,7 +1175,7 @@ condenseSummary() {
         let samplecols=1
     fi
      #offset for use with cut
-    let keepend=8+$samplecols
+    let keepend=9+$samplecols
     let loseend=$keepend+$ngts+1
 
     paste <(cut -f1-$keepend $input) \
@@ -1176,7 +1196,7 @@ inheritanceSupVec() {
     # the cohort (parental) support vector will always be field 8
     if [[ $nquery == 3 ]]
     then
-        cut -f8 $input | awk -F '_' '{if(NF==1 ){\
+        cut -f9 $input | awk -F '_' '{if(NF==1 ){\
             if($0=="Proband"){print "de_novo"}
             else{print "not_present"}
         };\
@@ -1190,12 +1210,12 @@ inheritanceSupVec() {
                 print "paternal"}
             else {print "inherited"}}}' > $output.inheritances.txt
     else
-        cut -f8 $input | awk -F '_' '{if($0!~/Proband/){print "not_present"}\
+        cut -f9 $input | awk -F '_' '{if($0!~/Proband/){print "not_present"}\
         else if(NF==1 && $0=="Proband"){print "not_inherited"}\
         else if(NF==2){print "inherited"}}' > $output.inheritances.txt
     fi
 
-    paste <(cut -f1-7 ${input}) $output.inheritances.txt <(cut -f9- ${input})  > ${output}_inheritance.txt 
+    paste <(cut -f1-8 ${input}) $output.inheritances.txt <(cut -f10- ${input})  > ${output}_inheritance.txt 
 }
 
 cohortControlOverlap() {
@@ -1207,7 +1227,7 @@ cohortControlOverlap() {
     COHORT_SAMPLES=${#COHORT_SAMPLE_NAME_LIST[@]}
 
     truvari_merge "${query}" "${output}"
-    parse_vcf "${output}_truvari_merged_temp.txt" "${output}" "${COHORT_SAMPLES}"
+    parse_vcf "${output}_truvari_merged_reduced.tsv" "${output}" "${COHORT_SAMPLES}"
     collapse_gt "${output}_temp2.txt" "${output}" "${COHORT_SAMPLES}" 0
     make_supp_vecc "${output}_temp3.txt" "${output}" "${COHORT_SAMPLES}" 0
     hwe "${output}_temp7.txt" "${output}" "${COHORT_SAMPLES}" 0
@@ -1221,7 +1241,7 @@ singleVCFControlOverlap() {
     local output=$2
 
     truvari_merge "${query}" "${output}"
-    parse_vcf "${output}_truvari_merged_temp.txt" "${output}" 1
+    parse_vcf "${output}_truvari_merged_reduced.tsv" "${output}" 1
     collapse_gt "${output}_temp2.txt" "${output}" 1 1
     make_supp_vecc "${output}_temp3.txt" "${output}" 1 1
     hwe "${output}_temp7.txt" "${output}" 1 1
@@ -1229,20 +1249,21 @@ singleVCFControlOverlap() {
 
 }
 
+# debug more closely
 multiVCFControlOverlap() {
     local queries=$1
     local output=$2
     local n=$3
 
     truvari_merge "${queries}" "${output}"
-    parse_vcf "${output}_truvari_merged_temp.txt" "${output}" ${n}
+    parse_vcf "${output}_truvari_merged_reduced.tsv" "${output}" ${n}
     collapse_gt "${output}_temp2.txt" "${output}" ${n} 0 #read depth columns are dropped here
     # keep gt,alt depth,ref depth for later
     let ncols=3*n
-    let colend=$ncols+6
+    let colend=$ncols+7
     let cutcol=4*n
 
-    cut -f7-${colend} ${output}_temp2.txt | awk 'BEGIN{OFS="\t"}\
+    cut -f8-${colend} ${output}_temp2.txt | awk 'BEGIN{OFS="\t"}\
         {for(i=1;i<=NF;i+=3){\
             totalreads=$(i+1)+$(i+2);\
             if(totalreads==""){totalreads="."}
@@ -1370,20 +1391,20 @@ positionIndexedAnnotations() {
     if [[ "${SELECTEDANNO}" =~ tre ]]
     then
         echo "Finding TRE overlap"
-        awk 'BEGIN{FS=OFS="\t"} $7!="INS" && $7!="DEL" && $7!="DUP" {print $0, "."}' \
+        awk 'BEGIN{FS=OFS="\t"} $8!="INS" && $8!="DEL" && $8!="DUP" {print $0, "."}' \
             "${input}" > "${output}"_novamos.txt
         bedtools map \
             -a ${input} \
             -b $VAMOSEXPAND \
             -c 4 \
             -o distinct | \
-            awk -F '\t' '{if($7=="DUP" || $7=="INS"){print $0}}' > ${output}_insdup.txt
+            awk -F '\t' '{if($8=="DUP" || $8=="INS"){print $0}}' > ${output}_insdup.txt
         bedtools map \
             -a ${input} \
             -b $VAMOS \
             -c 4 \
             -o distinct | \
-            awk -F '\t' '{if($7=="DEL"){print $0}}' > ${output}_del.txt
+            awk -F '\t' '{if($8=="DEL"){print $0}}' > ${output}_del.txt
         cat ${output}_insdup.txt ${output}_del.txt ${output}_novamos.txt | \
             awk 'BEGIN{FS=OFS="\t"} {$NF=($NF==-1||$NF==".")?".":"vamos"; print}' \
             | sort -k1,1 -k2,2n -k3,3n | uniq > ${output}_tre.txt
@@ -1467,11 +1488,11 @@ printVCF() {
     echo "Building output VCF"
 
     paste <( cat $input | awk -v qid=$qid 'BEGIN{OFS="\t"}\
-    NR==1{print $1,$2,$4,$5,$6,$7,$3,"Query_ID"}\
-    NR>1{print $1,$2,$4,$5,$6,$7,$3,qid}' ) <(cut -f8- $input ) > ${output}_vcf_rearrange.txt
+    NR==1{print $1,$2,$4,$5,$6,$7,$8,$3,"Query_ID"}\
+    NR>1{print $1,$2,$4,$5,$6,$7,$8,$3,qid}' ) <(cut -f9- $input ) > ${output}_vcf_rearrange.txt
 
     # infolines built on the input table header
-    tableheader=( $(head -n1 ${output}_vcf_rearrange.txt | cut -f 5- ) )
+    tableheader=( $(head -n1 ${output}_vcf_rearrange.txt | cut -f 6- ) )
     echo ${tableheader[@]}
 
     # pull file format and contig list from input vcf for future compatability with different references
@@ -1498,15 +1519,42 @@ printVCF() {
             -v header=${infoheaderval} \
             'BEGIN{OFS="\t"; ninfo=split(header,infoarray,"|")}
             {
-                printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t",$1,$2,".",$3,$4,".",".")
-                for(i=5;i<=NF;i++)
+                printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t",$1,$2,$3,$4,$5,".",".")
+                for(i=6;i<=NF;i++)
                 {
-                    printf("%s=%s;", infoarray[i-4], $i)
+                    printf("%s=%s;", infoarray[i-5], $i)
                 }
                 printf("\n")
             }' >> ${output}.vcf
 
-    bcftools sort ${output}.vcf -O z -o ${finalOutput}.vcf.gz --write-index=tbi
+    bcftools sort ${output}.vcf -O z -o ${output}.sorted.prelift.vcf.gz --write-index=tbi
+
+    zgrep ^## ${vcf} > ${finalOutput}.vcf
+    echo '##source="needLR-v4.1"' >> ${finalOutput}.vcf
+    echo '##INFO=<ID=needLR_null,Number=1,Type=String,Description="Supplied when no needLR annotation was created">' >> ${finalOutput}.vcf
+    zgrep  ^##INFO ${output}.sorted.prelift.vcf.gz >> ${finalOutput}.vcf
+    zgrep ^#CHROM ${vcf} >> ${finalOutput}.vcf
+
+    varids=( $(zgrep -v ^# $vcf | cut -f3) )
+    newinfolines=()
+    for varid in ${varids[@]}
+    do
+        varline=$(zgrep $varid ${output}.sorted.prelift.vcf.gz || echo "none")
+        if [[ $varline != "none" ]]
+        then
+            infoline=$( echo $varline | cut -d ' ' -f8 )
+        else
+            infoline='needLR_null="none"'
+        fi
+        newinfolines+=( $infoline )
+    done
+
+    paste <( zgrep -v ^# $vcf | cut -f1-7 ) \
+        <( paste <(zgrep -v ^# $vcf | cut -f8) <(echo ${newinfolines[@]} | tr ' ' '\n') | tr '\t' ';' ) \
+        <(zgrep -v ^# $vcf | cut -f9-10) >> ${finalOutput}.vcf
+
+    bgzip ${finalOutput}.vcf
+    tabix -p vcf ${finalOutput}.vcf.gz
 
 }
 
@@ -1577,7 +1625,8 @@ printTable() {
     echo "Printing tabular results to ${finalOutput}_RESULTS.tsv"
 
     # make different headers depending on input options
-    tableheader=( CHROM POS End_Pos REF ALT SVLEN SVTYPE )
+    #tableheader=( CHROM POS End_Pos REF ALT SVLEN SVTYPE )
+    tableheader=( CHROM POS End_Pos ID REF ALT SVLEN SVTYPE )
     case $nquery in
         1) tableheader+=( Control_support Genotype Alt_Reads Ref_Reads Total_Reads ) ;;
         2) tableheader+=( Inheritance Control_support Genotype Alt_Reads Ref_Reads Total_Reads Parental_GT Parental_Alt_Reads Parental_Ref_Reads Parental_Total_Reads) ;;
@@ -1647,7 +1696,7 @@ printTable() {
         
     cat ${output}_results_long.txt | \
         awk -F '\t' -v annostart=${annotationstart} -v annostop=${annotationstop} \
-        -v ref=4 -v alt=5 'BEGIN{OFS="\t"}\
+        -v ref=5 -v alt=6 'BEGIN{OFS="\t"}\
         {if(length($ref) > 30000){$ref="[too_long_see_vcf]"};
             if(length($alt) > 30000){$alt="[too_long_see_vcf]"};
             for(i=annostart;i<=annostop;i++){
@@ -1666,9 +1715,9 @@ filterTable() {
 
     if [ -z ${COHORT_VCF+x} ] #if running with a cohort, account for different # cols
     then
-        afcol=13
+        afcol=14
     else
-        afcol=17
+        afcol=18
     fi
 
     ##Filtered output 1: SVs absent from 1KGP entirely (afcol = Allele_Freq_ALL_1KGP)
@@ -1687,16 +1736,16 @@ filterInheritance() {
 
     if [[ $runtype == "TRIO" ]]
     then    
-        afcol=22
-        incol=8
+        afcol=23
+        incol=9
 
         ##Filtered output 3: de novo SVs
         awk -F'\t' -v inheritance=$incol 'BEGIN{OFS="\t"} NR==1 || $inheritance=="de_novo" {print}' \
         $input > "${output}_RESULTS_denovo.tsv"
 
     else
-        afcol=18
-        incol=8
+        afcol=19
+        incol=9
 
         awk -F'\t' -v inheritance=$incol 'BEGIN{OFS="\t"} NR==1 || $inheritance=="not_inherited" {print}' \
         $input > "${output}_RESULTS_not_inherited.tsv"
@@ -1796,6 +1845,14 @@ annotateRun() {
         else
             analysisquery=$query
         fi
+
+        echo "query is ${analysisquery}"
+        # assign needLR id so that original variant notation can be recovered
+        zgrep ^# ${analysisquery} > ${temp}.input.vcf
+        zgrep -v ^# ${analysisquery} | awk -F '\t' 'BEGIN{OFS="\t"}{$3="needLR."$3; print $0}' >> ${temp}.input.vcf
+        bgzip ${temp}.input.vcf
+        tabix -p vcf ${temp}.input.vcf.gz
+        analysisquery=${temp}.input.vcf.gz
 
         if [ ! -z ${COHORT_VCF+x} ]
         then
@@ -1926,7 +1983,14 @@ comparatorRun() {
 
     echo "Annotating as a $ctype"
 
-    multiVCFControlOverlap ${output}_proband.vcf.gz,${parentString} ${output} ${n}
+    # assign needLR id so that original variant notation can be recovered
+    zgrep ^# ${output}_proband.vcf.gz > ${output}_proband.temp.vcf
+    zgrep -v ^# ${output}_proband.vcf.gz | awk -F '\t' 'BEGIN{OFS="\t"}{$3="needLR."$3; print $0}' >> ${output}_proband.temp.vcf
+    bgzip ${output}_proband.temp.vcf
+    tabix -p vcf ${output}_proband.temp.vcf.gz
+
+
+    multiVCFControlOverlap ${output}_proband.temp.vcf.gz,${parentString} ${output} ${n}
 
     annotateGenes "${output}_inheritance.txt" ${output}
     
@@ -1939,13 +2003,13 @@ comparatorRun() {
 
     ## add back in the proband read depths and totals + parental genotypes
     ## remove records with no proband gt
-    paste <( cut -f1-9 ${output}_posannotations.txt) \
+    paste <( cut -f1-10 ${output}_posannotations.txt) \
         ${output}_dvdr.txt \
-        <(cut -f17- ${output}_posannotations.txt) \
+        <(cut -f18- ${output}_posannotations.txt) \
         | grep -v "not_present" > ${output}_fullwidth.txt
 
     printTable ${output}_fullwidth.txt ${output} ${finalOutput} $n
-    printVCF $analysisquery ${finalOutput}_RESULTS.tsv ${output} ${finalOutput} $n
+    printVCF ${output}_proband.temp.vcf.gz ${finalOutput}_RESULTS.tsv ${output} ${finalOutput} $n
 
     
 
@@ -2049,4 +2113,7 @@ case "${subcommand}" in
         exit 1
 esac
 
-rm $temp*
+if [[ $DEBUG -eq 0 ]]
+then
+    rm $temp*
+fi
