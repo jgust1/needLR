@@ -37,25 +37,28 @@ conda activate needLRNextflow
 
 |Option|Description|
 |------|-----------|
-|**--subcommand**| needLR subcommand to run. Valid values are `annotate` and `bed`|
-|**--fileList**| path to your input file list|
-|--control_vcf| path to a Truvari merged vcf[.gz] to use as population controls |
-|--region| a genomic region to restrict analysis to (e.g. chrX:12345-23456)|
-|--globalcpus| total number of CPUs for nextflow to use (default: 1) |
-|--maxSimultaneous| number of needLR instances to run simultaneously (default: 1)|
-|--merged| input files are merged VCFs (true or false)|
-|--publish_dir| output directory for needLR files (default: results)|
-|--no_annotations| do not add annotations, population stats only (default false)|
-|--omim|include omim annotations (default true)|
-|--gencc|include gencc annotations (default true)|
-|--hpo|include hpo term annotations (default true)|
-|--pli|include pLI annotations (default true)|
-|--utr|include UTR annotations (default true)|
-|--cds|include CDS annotations (default true)|
-|--oreganno|include ORegAnno annotations (default true)|
-|--mapflags|include difficult mapping region flags (default true)|
-|--hiconf|annotate overlap with high confidence regions (default true)|
-|--example| only include this if you are running the example. Allows for paths relative to launchdir in `fileList`|
+| **--subcommand** | needLR subcommand to run. Valid values are `annotate` and `bed`|
+| **--fileList** | path to your input file list|
+| --control_vcf| path to a Truvari merged vcf[.gz] to use as population controls |
+| --subpops| path to a .csv or .tsv file listing sample names and subpopulation membership in provided `control_vcf` |
+| --keep1kg | run 1kg controls along with provided `control_vcf` |
+| --melt1kg| merge provided subpopulation counts with 1kg subpopulation counts where labels overlap |
+| --region | a genomic region to restrict analysis to (e.g. chrX:12345-23456)|
+| --globalcpus | total number of CPUs for nextflow to use (default: 1) |
+| --maxSimultaneous | number of needLR instances to run simultaneously (default: 1)|
+| --merged | input files are merged VCFs (true or false)|
+| --publish_dir | output directory for needLR files (default: results)|
+| --no_annotations | do not add annotations, population stats only (default false)|
+| --omim |include omim annotations (default true)|
+| --gencc |include gencc annotations (default true)|
+| --hpo |include hpo term annotations (default true)|
+| --pli |include pLI annotations (default true)|
+| --utr |include UTR annotations (default true)|
+| --cds |include CDS annotations (default true)|
+| --oreganno |include ORegAnno annotations (default true)|
+| --mapflags |include difficult mapping region flags (default true)|
+| --hiconf |annotate overlap with high confidence regions (default true)|
+| --example | only include this if you are running the example. Allows for paths relative to launchdir in `fileList`|
 
 See the [Nextflow Documentation](https://www.nextflow.io/docs/stable/reference/cli.html) for more general command line options. This is especially relevant if running the nextflow on a cluster.
 
