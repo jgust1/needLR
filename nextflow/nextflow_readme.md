@@ -65,7 +65,7 @@ See the [Nextflow Documentation](https://www.nextflow.io/docs/stable/reference/c
 
 ## Examples
 
-One example of an input file list is included in `needLR/examples/input`
+One example of an input file list is included in `needLR/examples/input/nextflow_input/list_ofsamples.txt`
 
 ```
 nextflow run main.nf --subcommand annotate --fileList ../examples/nextflow_input/list_of_samples.txt --example=true --cpus 20 --maxSimultaneous 2
