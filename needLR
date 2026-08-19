@@ -9,8 +9,8 @@ OUTPUTDIR="$(pwd)/needLR_output"
 
 thisscript=$(realpath "$0")
 scriptpath=${thisscript%/*}
-#refloc=REFLOCPATH
-refloc=/home/mgaley/needLR_manu/needLR/backend_files
+refloc=REFLOCPATH
+
 FILTERPASS=0 #this setting is to include non-passing variants or not. default is to filter nothing.
 run1kg=1 #this setting determines whether or not to run 1kg specific annotation scripts or use a custom control set
 THREADS=1
