@@ -7,7 +7,7 @@ NeedLR v 4.0 Nextflow Wrapper
 This wrapper assists in running needLR v4.0 on more than one sample concurrently
 
 // Input parameters:
-Control Reference Dataset: ${params.control_vcf}
+
 Region of Interest: ${params.region}
 CPUS: ${params.cpus}
 Merged VCFS:    ${params.merged}
@@ -26,6 +26,12 @@ CDS:                        ${params.cds}
 ORegAnno:                   ${params.oreganno}
 Mapping Flags:              ${params.mapflags}
 High Confidence Regions:    ${params.hiconf}
+
+// Reference parameters
+Control Reference Dataset: ${params.control_vcf}
+Subpopulation Counts: ${params.subpops}
+Include 1KG: ${params.keep1kg}
+Merge 1KG with provide reference dataset: ${params.melt1kg}
 """
 
 include { run_needLR_bed } from "${launchDir}/workflows/annotate_bed.nf"
@@ -62,23 +68,29 @@ workflow {
                 params.merged )
         } else {
             ch_controls = Channel.fromPath(params.control_vcf)
-            print """run_needLR_annotate_custom_controls(
+            if(params.subpops!=null){
+                ch_subpops = Channel.fromPath(params.subpops)
+            }else{
+                ch_subpops = Channel.fromPath("${projectDir}/assets/NO_FILE")
+            }
+            run_needLR_annotate_custom_controls(
                 ${ch_inputs},
                 ${ch_controls},
+                ${ch_subpops},
                 ${ch_ids},
                 ${params.region},
                 ${params.annotation_string},
                 ${params.merged}
-            )"""
+            )
         }
     }
     else if(params.subcommand=="bed"){
-        print """run_needLR_bed(
+        run_needLR_bed(
                 ${ch_inputs},
                 ${ch_ids},
                 ${params.region},
                 ${annotation_string},
-            )"""
+            )
     } else {
         throw new IllegalArgumentException("Invalid subcommand: ${params.subcommand}")
     }
