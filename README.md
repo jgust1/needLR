@@ -34,8 +34,8 @@ Access the deprecated needLR_v3.4 README [here](https://github.com/millerlaborat
 
 Access the deprecated needLR_v3.5 README [here](https://github.com/millerlaboratory/needLR/blob/main/docs/needLR_v3.4_README_deprecated_20260403.md)
 
-#### Please cite our 2025 needLR preprint:  
-<sup>*Gustafson JA, Lin J, Zalusky MPG, Eichler EE, Miller DE. needLR: Long-read structural variant annotation with population-scale frequency estimation. arXiv preprint arXiv:2512.08175. 2025 Dec 9.*</sup>
+#### Please cite our 2026 needLR publication:  
+Gustafson JA, Lin J, Zalusky MPG, Eichler EE, Miller DE. needLR: long-read structural variant annotation with population-scale frequency estimation. Bioinformatics. 2026 Jul 2;42(7):btag407. doi: 10.1093/bioinformatics/btag407. PMID: 42308524; PMCID: PMC13332437.
 
 *Please contact jgust1@uw.edu with issues or suggestions.*
 
