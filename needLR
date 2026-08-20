@@ -34,25 +34,6 @@ RUNSUBPOPS=0
 MERGECONTROLS=0
 MELTCONTROLS=0
 
-# annotation filenames
-
-GENES="$refloc/bed_files/PROTEIN_CODING_GENE_gencode.v45.annotation_5kb_slop.bed"
-UTR="$refloc/bed_files/ENSEMBL_CANONICAL_PROTEIN_CODING_UTR_gencode.v45.annotation.bed"
-CDS="$refloc/bed_files/ENSEMBL_CANONICAL_EXON_in_PROTEIN_CODING_GENE_NO_UTR_gencode.v45.annotation.sorted.bed"
-OMIM_GENES="$refloc/bed_files/OMIM.20260129.sanitized.name_indexed.csv"
-GENCC="$refloc/bed_files/gencc-clean-sorted-20260326.csv"
-#HPO="$refloc/bed_files/HPO_genes_to_phenotype_cut.txt"
-PLI="$refloc/bed_files/gnomAD_v4.1_constraint_CURATED.csv"
-OREGANNO="$refloc/bed_files/ORegAnno.bed"
-HG38_REGIONS="$refloc/bed_files/hg38.centromeres.pericentromeres.telomeres.bed"
-VAMOS="$refloc/bed_files/from_SG_STR_VNTR_original_motifs.set148_cut.sorted.bed"
-VAMOSEXPAND="$refloc/bed_files/vamos.slop.hg38.sorted.bed"
-SEGDUPS="$refloc/bed_files/SEGDUPS_GIAB_v3.3.labeled.bed"
-HOMOPOLYMERS="$refloc/bed_files/gus_homemade_homopolymers_ge50_nodecoy.bed"
-REPEAT_MASKER="$refloc/bed_files/UCSC_hg38_Repeats_RepeatMasker.bed"
-DEFRABB_HICONF="$refloc/bed_files/GRCh38_HG002-T2TQ100-V1.0_stvar.benchmark.labeled.bed"
-GAPS="$refloc/bed_files/UCSC_hg38_Mapping_and_Sequencing_Gap.labeled.bed"
-GENOME_FILE="$refloc/bed_files/hg38.chrom.sizes.txt"
 
 ALLANNOTATIONLIST=( omim gencc hpo pli utr cds oreganno tre mapflags hiconf )
 NSUBGROUPS=1
@@ -464,6 +445,28 @@ do
         
     esac
 done
+
+DATA1KG="$refloc/UWONT_500_sniffles_2.6.2_preproc2_T31_v4.2.2.vcf.gz"
+
+# annotation filenames
+
+GENES="$refloc/bed_files/PROTEIN_CODING_GENE_gencode.v45.annotation_5kb_slop.bed"
+UTR="$refloc/bed_files/ENSEMBL_CANONICAL_PROTEIN_CODING_UTR_gencode.v45.annotation.bed"
+CDS="$refloc/bed_files/ENSEMBL_CANONICAL_EXON_in_PROTEIN_CODING_GENE_NO_UTR_gencode.v45.annotation.sorted.bed"
+OMIM_GENES="$refloc/bed_files/OMIM.20260129.sanitized.name_indexed.csv"
+GENCC="$refloc/bed_files/gencc-clean-sorted-20260326.csv"
+#HPO="$refloc/bed_files/HPO_genes_to_phenotype_cut.txt"
+PLI="$refloc/bed_files/gnomAD_v4.1_constraint_CURATED.csv"
+OREGANNO="$refloc/bed_files/ORegAnno.bed"
+HG38_REGIONS="$refloc/bed_files/hg38.centromeres.pericentromeres.telomeres.bed"
+VAMOS="$refloc/bed_files/from_SG_STR_VNTR_original_motifs.set148_cut.sorted.bed"
+VAMOSEXPAND="$refloc/bed_files/vamos.slop.hg38.sorted.bed"
+SEGDUPS="$refloc/bed_files/SEGDUPS_GIAB_v3.3.labeled.bed"
+HOMOPOLYMERS="$refloc/bed_files/gus_homemade_homopolymers_ge50_nodecoy.bed"
+REPEAT_MASKER="$refloc/bed_files/UCSC_hg38_Repeats_RepeatMasker.bed"
+DEFRABB_HICONF="$refloc/bed_files/GRCh38_HG002-T2TQ100-V1.0_stvar.benchmark.labeled.bed"
+GAPS="$refloc/bed_files/UCSC_hg38_Mapping_and_Sequencing_Gap.labeled.bed"
+GENOME_FILE="$refloc/bed_files/hg38.chrom.sizes.txt"
 
 temp="${OUTPUTDIR}/needlr.temp"
 

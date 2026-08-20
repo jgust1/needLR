@@ -409,7 +409,7 @@ Below are the output columns. Some are specific to the needLR subcommand used. "
 | Homopolymer                   | If the SV intersects with an homopolymer >50bp |
 | HiConf                | If the SV is fully contained within a high confidence region (Genome in a Bottle T2TQ100-V1.0_stvar) |
 
-### Columns output when using 1KGP dataset as a control reference
+### Columns output when using 1KGP dataset as a control reference or with provided subpopulations
 | Column Name           | Column Description                                                                 |
 |:-----------------------|:-----------------------------------------------------------------------------------|
 | Pop_Count_AFR         | How many 1KGP AFR ancestry samples have the SV                             |
