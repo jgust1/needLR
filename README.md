@@ -185,10 +185,10 @@ Additional options:
 See above for recommended sniffles2 version/parameters 
 
 >[!NOTE]
-Positional arguments and files must come before the query VCF (see example below)
+>Positional arguments and files must come before the query VCF (see example below)
 
 >[!NOTE]
-If custom counts are provided with a string, it is assumed that the samples provided in the control cohort are sorted in that order.
+>If custom counts are provided with a string, it is assumed that the samples provided in the control cohort are sorted in that order.
 
 General Annotation options
 | | |
@@ -329,12 +329,15 @@ All annotation options available in `annotate` are also available in `bed`.
 
 #### Examples
 
-Annotate example.bed, limit to chr22, apply all available annotations
+Annotate example bed, limit to chr22, apply all available annotations
 
 ```
-needLR bed -R chr22 examples/inputs/example.bed
+needLR bed -R chr22 examples/inputs/kinnex_example_chr22.bed
 ```
-Output for this example `examples/outputs/example_needLR_bed_v4.1/`
+Output for this example `examples/outputs/kinnex_example_chr22_needLR_bed_v4.1/`
+
+>[!NOTE]
+> The input bed does not need to be pre-parsed for the region of interest, it is just this way in the example for file size consideration
 
 
 ## OUTPUT
