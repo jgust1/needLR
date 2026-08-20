@@ -5,6 +5,13 @@
 
 🚧 ** **_needLR  is actively under construction_** ** 🚧
 
+Changes from v4.1 -> 4.1
+* Original format columns, variant notation, filter, and info columns from input VCF are retained in needLR output
+* Subgroup population counts can be provided when using a custom control cohort
+* Subgroup allele and population frequencies are added to the output
+* The custom control cohort can be merged with default 1000 genome control dataset
+* Where labels overlap, subgroups can be combined or tabulated separately
+
 needLR_v4.0 has replaced needLR_v3.5 as of April 3rd, 2026. Major changes include:
 * needLR modes are now subcommands -- please see updated usage
 * Custom control sets may be used with any subcommand
@@ -88,7 +95,7 @@ Please install needLR using conda or Docker/podman/apptainer.
 Build an environment for needLR to run in like so:
 
 ```
-conda create -n needLR-4.0 -c bioconda -c conda-forge needlr=4.0
+conda create -n needLR-4.0 -c bioconda -c conda-forge needlr=4.1
 conda activate needLR-4.0
 ```
 
@@ -96,7 +103,7 @@ conda activate needLR-4.0
 Alternatively, you can make a custom conda installation following these steps:
 
 
-1. Build a conda environment using the `.yaml` file: `envs/needLR-4.0.yaml`
+1. Build a conda environment using the `.yaml` file: `envs/needLR-4.1.yaml`
 2. Clone this repository.
 3. Copy or make a sm link of `needLR` and `src/` in this repository to `${CONDA_PREFIX}/bin`
 4. Download the backend files required to run needLR from AWS: 
@@ -210,7 +217,7 @@ needLR annotate examples/inputs/single_genome_example_chr22.vcf.gz
 > This example willl run much more quickly (and equivalently) if option `-R chr22` is included, since the input\
 VCF is limited to SVs on chr22.
 
-Output for this example: `examples/outputs/single_genome_example_chr22_needLR_1kg_v4.0/`
+Output for this example: `examples/outputs/single_genome_example_chr22_needLR_1kg_v4.1/`
 
 This example is included in the docker image and can be run like so:
 
@@ -221,6 +228,14 @@ docker run -v ${OUTPUTDIR}:/mnt/outputs \
   miragale/needlr:latest needLR annotate -O /mnt/outputs/needLR_output /mnt/needLR_examples/inputs/single_genome_example_chr22.vcf.gz
 ```
 
+
+If you are using the biocontainer for needlr, the example inputs are stored in a different directory. Modify the command like so:
+
+```
+docker run -v ${OUTPUTDIR}:/mnt/outputs \
+ quay.io/biocontainers/needlr:4.1--hdfd78af_0 needLR annotate \
+ -O /usr/local/share/needlr-4.1-0/examples/inputs/single_genome_example_chr22.vcf.gz
+```
 
 Compare a list of query VCFs to a different merged VCF and annotate with only OMIM and hiconfidence regions
 ```
