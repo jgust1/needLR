@@ -5,11 +5,11 @@
 
 🚧 ** **_needLR  is actively under construction_** ** 🚧
 
-Changes from v4.1 -> 4.1
+Changes from v4.0 -> 4.1
 * Original format columns, variant notation, filter, and info columns from input VCF are retained in needLR output
 * Subgroup population counts can be provided when using a custom control cohort
 * Subgroup allele and population frequencies are added to the output
-* The custom control cohort can be merged with default 1000 genome control dataset
+* The custom control cohort can be merged with default 1000 Genomes Project (1000 haplotypes) control dataset
 * Where labels overlap, subgroups can be combined or tabulated separately
 
 needLR_v4.0 has replaced needLR_v3.5 as of April 3rd, 2026. Major changes include:
@@ -73,7 +73,7 @@ This version of needLR incorporates SV calls made by Sniffles_v2.6.2 for 500 1KG
 4. Assign ancestry aware allele frequencies to each query SV based on 1KGP sample input
 5. Annotate query sample SVs with genomic context, OMIM phenotype association, and Hardy-Weinberg equilibrium check
 
-needLR_v4.0 has three subcommands:
+needLR_v4.1 has three subcommands:
 * [annotate](#subcommand-annotate): Compares one or more query vcfs to a pre-merged, multisample vcf of 500 1KGP samples and annotates the SVs in the query individual. A custom control set may optionally be provided. If a multisample vcf is provided, SVs that are present in one more affected individuals in the cohort are annotated.
 * [comparator](#subcommand-comparator): Compares a single query sample and one or two parental samples to a pre-merged, multisample vcf of 500 1KGP samples and annotates the SVs in the query individual. This function uniquely annotates the SVs from the query vcf as being "inherited", "maternal", "paternal", "de_novo", or "not_inherited" based on SVs from the parental vcf(s).
 * [bed](#subcommand-bed): Annotates any sorted bed file with needLR annotations
@@ -95,8 +95,8 @@ Please install needLR using conda or Docker/podman/apptainer.
 Build an environment for needLR to run in like so:
 
 ```
-conda create -n needLR-4.0 -c bioconda -c conda-forge needlr=4.1
-conda activate needLR-4.0
+conda create -n needLR-4.1 -c bioconda -c conda-forge needlr=4.1
+conda activate needLR-4.1
 ```
 
 
@@ -109,8 +109,8 @@ Alternatively, you can make a custom conda installation following these steps:
 4. Download the backend files required to run needLR from AWS: 
 
 ```
-wget https://s3.amazonaws.com/1000g-ont/needLR/needLR-v4.0-backend-files.tar.gz
-tar -xvzf needLR_v4.0_backend_files.tar.gz
+wget https://s3.amazonaws.com/1000g-ont/needLR/needLR-v4.1-backend-files.tar.gz
+tar -xvzf needLR_v4.1_backend_files.tar.gz
 ```
 
 If using a custom installation, you **must** use flag `-B` with your path to the `backend_files` folder downloaded in step 4 above.
@@ -184,6 +184,12 @@ Additional options:
 |-S| Path to a .tsv or .csv of control sample names and subgroups **or** a comma separated list of subpopulation counts |
 See above for recommended sniffles2 version/parameters 
 
+>[!NOTE]
+Positional arguments and files must come before the query VCF (see example below)
+
+>[!NOTE]
+If custom counts are provided with a string, it is assumed that the samples provided in the control cohort are sorted in that order.
+
 General Annotation options
 | | |
 | :------------ |:-------------|
@@ -214,7 +220,7 @@ needLR annotate examples/inputs/single_genome_example_chr22.vcf.gz
 ```
 
 >[!NOTE]
-> This example willl run much more quickly (and equivalently) if option `-R chr22` is included, since the input\
+> This example will run much more quickly (and equivalently) if option `-R chr22` is included, since the input\
 VCF is limited to SVs on chr22.
 
 Output for this example: `examples/outputs/single_genome_example_chr22_needLR_1kg_v4.1/`
@@ -244,8 +250,8 @@ needLR annotate -L examples/inputs/list_of_samples.txt -C examples/inputs/merged
 
 Outputs for this example:
 ```
-examples/outputs/single_genome_example_chr22_needLR_customControl_v4.0/
-examples/outputs/HG005_Pb_hantrio_sniffles_chr22_needLR_customControl_v4.0/
+examples/outputs/single_genome_example_chr22_needLR_customControl_v4.1/
+examples/outputs/HG005_Pb_hantrio_sniffles_chr22_needLR_customControl_v4.1/
 ```
 
 Compare the SVs in a merged cohort VCF to the 500 1KGP database and limit analysis to a smaller region
@@ -253,7 +259,7 @@ Compare the SVs in a merged cohort VCF to the 500 1KGP database and limit analys
 needLR annotate -Q examples/inputs/merged_cohort_chr22.vcf.gz -R chr22:10731900-11588324
 ```
 
-Output for this example `examples/outputs/merged_cohort_chr22_needLR_1kg_v4.0/`
+Output for this example `examples/outputs/merged_cohort_chr22_needLR_1kg_v4.1/`
 
 
 #### Using subpopulations
@@ -263,14 +269,11 @@ Provide a comma or tab separated file with sample ids and subpopulation membersh
 For an example, see `inputs/subpop_groups.csv` 
 
 
-Alternatively, you may provide subpopulation names and count pairs with `-S`, following this pattern:
+Alternatively, you may provide subpopulation names and count pairs with `-S`, following this pattern (with samples in that order in the provided control cohort):
 
 ```
 -S AFR:2,EUR:10,EAS:20,CUSTOM:100
 ```
-
-If counts are provided with a string, it is assumed that the samples provided in the control cohort are sorted in that order.
-
 
 ### Subcommand: comparator
 
@@ -295,7 +298,7 @@ Compare a proband VCF to two parental VCFs along with the 500 1KGP database and 
 needLR comparator -P examples/inputs/trio/HG007_Mo_hantrio_sniffles_chr22.vcf.gz,examples/inputs/trio/HG006_Fa_hantrio_sniffles_chr22.vcf.gz examples/inputs/trio/HG005_Pb_hantrio_sniffles_chr22.vcf.gz
 ```
 
-Output for this example `examples/outputs/HG005_Pb_hantrio_sniffles_chr22_needLR_TRIO_1kg_v4.0/`
+Output for this example `examples/outputs/HG005_Pb_hantrio_sniffles_chr22_needLR_TRIO_1kg_v4.1/`
 
 
 Compare a proband VCF to a single parent VCF along with a custom control VCF and apply only gencc annotations
@@ -303,7 +306,7 @@ Compare a proband VCF to a single parent VCF along with a custom control VCF and
 needLR comparator -P examples/inputs/trio/HG007_Mo_hantrio_sniffles_chr22.vcf.gz -C examples/inputs/merged_cohort_chr22.vcf.gz --gencc examples/inputs/trio/HG005_Pb_hantrio_sniffles_chr22.vcf.gz
 ```
 
-Output for this example `examples/outputs/HG005_Pb_hantrio_sniffles_chr22_needLR_DUO_customControl_v4.0/`
+Output for this example `examples/outputs/HG005_Pb_hantrio_sniffles_chr22_needLR_DUO_customControl_v4.1/`
 
 
 
@@ -326,12 +329,12 @@ All annotation options available in `annotate` are also available in `bed`.
 
 #### Examples
 
-Annotate kinnex data, limit to chr22, apply all available annotations
+Annotate example.bed, limit to chr22, apply all available annotations
 
 ```
-needLR bed -R chr22 examples/inputs/kinnex_example_chr22.bed
+needLR bed -R chr22 examples/inputs/example.bed
 ```
-Output for this example `examples/outputs/kinnex_example_chr22_needLR_bed_v4.0/`
+Output for this example `examples/outputs/example_needLR_bed_v4.1/`
 
 
 ## OUTPUT
@@ -409,7 +412,7 @@ Below are the output columns. Some are specific to the needLR subcommand used. "
 | Homopolymer                   | If the SV intersects with an homopolymer >50bp |
 | HiConf                | If the SV is fully contained within a high confidence region (Genome in a Bottle T2TQ100-V1.0_stvar) |
 
-### Columns output when using 1KGP dataset as a control reference or with provided subpopulations
+### Columns output when using 1KGP dataset as a control reference (adjusted to reflect custom populations when used)
 | Column Name           | Column Description                                                                 |
 |:-----------------------|:-----------------------------------------------------------------------------------|
 | Pop_Count_AFR         | How many 1KGP AFR ancestry samples have the SV                             |
