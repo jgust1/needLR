@@ -8,3 +8,7 @@ nextflow/results/*
 nextflow/work/*
 nextflow/workflows/comparators.nf
 needLR_output/
+testing*/
+temp*
+test*
+inspect.vcf

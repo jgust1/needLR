@@ -5,6 +5,7 @@ set -euo pipefail
 
 version=4.0
 OUTPUTDIR="$(pwd)/needLR_output"
+#temp=$(mktemp -u -t needlr.temp.XXXXX)
 
 thisscript=$(realpath "$0")
 scriptpath=${thisscript%/*}
@@ -15,7 +16,7 @@ run1kg=1 #this setting determines whether or not to run 1kg specific annotation 
 THREADS=1
 ANALYSISREGION="All"
 DATA1KG="$refloc/UWONT_500_sniffles_2.6.2_preproc2_T31_v4.2.2.vcf.gz"
-
+DEBUG=0
 
 # truvari parameters
 
@@ -27,25 +28,12 @@ truvari_p=0
 truvari_P=0.2
 truvari_O=0.2
 
-# annotation filenames
+# other parameters
 
-GENES="$refloc/bed_files/PROTEIN_CODING_GENE_gencode.v45.annotation_5kb_slop.bed"
-UTR="$refloc/bed_files/ENSEMBL_CANONICAL_PROTEIN_CODING_UTR_gencode.v45.annotation.bed"
-CDS="$refloc/bed_files/ENSEMBL_CANONICAL_EXON_in_PROTEIN_CODING_GENE_NO_UTR_gencode.v45.annotation.sorted.bed"
-OMIM_GENES="$refloc/bed_files/OMIM.20260129.sanitized.name_indexed.csv"
-GENCC="$refloc/bed_files/gencc-clean-sorted-20260326.csv"
-#HPO="$refloc/bed_files/HPO_genes_to_phenotype_cut.txt"
-PLI="$refloc/bed_files/gnomAD_v4.1_constraint_CURATED.csv"
-OREGANNO="$refloc/bed_files/ORegAnno.bed"
-HG38_REGIONS="$refloc/bed_files/hg38.centromeres.pericentromeres.telomeres.bed"
-VAMOS="$refloc/bed_files/from_SG_STR_VNTR_original_motifs.set148_cut.sorted.bed"
-VAMOSEXPAND="$refloc/bed_files/vamos.slop.hg38.sorted.bed"
-SEGDUPS="$refloc/bed_files/SEGDUPS_GIAB_v3.3.labeled.bed"
-HOMOPOLYMERS="$refloc/bed_files/gus_homemade_homopolymers_ge50_nodecoy.bed"
-REPEAT_MASKER="$refloc/bed_files/UCSC_hg38_Repeats_RepeatMasker.bed"
-DEFRABB_HICONF="$refloc/bed_files/GRCh38_HG002-T2TQ100-V1.0_stvar.benchmark.labeled.bed"
-GAPS="$refloc/bed_files/UCSC_hg38_Mapping_and_Sequencing_Gap.labeled.bed"
-GENOME_FILE="$refloc/bed_files/hg38.chrom.sizes.txt"
+RUNSUBPOPS=0
+MERGECONTROLS=0
+MELTCONTROLS=0
+
 
 ALLANNOTATIONLIST=( omim gencc hpo pli utr cds oreganno tre mapflags hiconf )
 NSUBGROUPS=1
@@ -97,27 +85,6 @@ INFOCOLTEXT[Allele_Freq_Cohort]='##INFO=<ID=Allele_Freq_Cohort,Number=1,Type=Flo
 INFOCOLTEXT[GT_coh_homWT]='##INFO=<ID=GT_coh_homWT,Number=1,Type=Integer,Description="Count of homozygous genotypes matching the reference in the cohort">'
 INFOCOLTEXT[GT_coh_het]='##INFO=<ID=GT_coh_het,Number=1,Type=Integer,Description="Count of heterozygous genotypes in the cohort">'
 INFOCOLTEXT[GT_coh_homVAR]='##INFO=<ID=GT_coh_homVAR,Number=1,Type=Integer,Description="Count of homozygous genotypes supporting the SV in the cohort">'
-##1kg controls only
-INFOCOLTEXT[Pop_Count_AFR]='##INFO=<ID=Pop_Count_AFR,Number=1,Type=Integer,Description="1KGP AFR samples carrying the SV (n=163)">'
-INFOCOLTEXT[Pop_Freq_AFR]='##INFO=<ID=Pop_Freq_AFR,Number=1,Type=Float,Description="Proportion of 1KGP AFR samples carrying the SV">'
-INFOCOLTEXT[Pop_Count_AMR]='##INFO=<ID=Pop_Count_AMR,Number=1,Type=Integer,Description="1KGP AMR samples carrying the SV (n=67)">'
-INFOCOLTEXT[Pop_Freq_AMR]='##INFO=<ID=Pop_Freq_AMR,Number=1,Type=Float,Description="Proportion of 1KGP AMR samples carrying the SV">'
-INFOCOLTEXT[Pop_Count_EAS]='##INFO=<ID=Pop_Count_EAS,Number=1,Type=Integer,Description="1KGP EAS samples carrying the SV (n=95)">'
-INFOCOLTEXT[Pop_Freq_EAS]='##INFO=<ID=Pop_Freq_EAS,Number=1,Type=Float,Description="Proportion of 1KGP EAS samples carrying the SV">'
-INFOCOLTEXT[Pop_Count_EUR]='##INFO=<ID=Pop_Count_EUR,Number=1,Type=Integer,Description="1KGP EUR samples carrying the SV (n=72)">'
-INFOCOLTEXT[Pop_Freq_EUR]='##INFO=<ID=Pop_Freq_EUR,Number=1,Type=Float,Description="Proportion of 1KGP EUR samples carrying the SV">'
-INFOCOLTEXT[Pop_Count_SAS]='##INFO=<ID=Pop_Count_SAS,Number=1,Type=Integer,Description="1KGP SAS samples carrying the SV (n=103)">'
-INFOCOLTEXT[Pop_Freq_SAS]='##INFO=<ID=Pop_Freq_SAS,Number=1,Type=Float,Description="Proportion of 1KGP SAS samples carrying the SV">'
-INFOCOLTEXT[Allele_Count_AFR]='##INFO=<ID=Allele_Count_AFR,Number=1,Type=Integer,Description="1KGP AFR alleles carrying the SV">'
-INFOCOLTEXT[Allele_Freq_AFR]='##INFO=<ID=Allele_Freq_AFR,Number=1,Type=Float,Description="1KGP AFR allele frequency">'
-INFOCOLTEXT[Allele_Count_AMR]='##INFO=<ID=Allele_Count_AMR,Number=1,Type=Integer,Description="1KGP AMR alleles carrying the SV">'
-INFOCOLTEXT[Allele_Freq_AMR]='##INFO=<ID=Allele_Freq_AMR,Number=1,Type=Float,Description="1KGP AMR allele frequency">'
-INFOCOLTEXT[Allele_Count_EAS]='##INFO=<ID=Allele_Count_EAS,Number=1,Type=Integer,Description="1KGP EAS alleles carrying the SV">'
-INFOCOLTEXT[Allele_Freq_EAS]='##INFO=<ID=Allele_Freq_EAS,Number=1,Type=Float,Description="1KGP EAS allele frequency">'
-INFOCOLTEXT[Allele_Count_EUR]='##INFO=<ID=Allele_Count_EUR,Number=1,Type=Integer,Description="1KGP EUR alleles carrying the SV">'
-INFOCOLTEXT[Allele_Freq_EUR]='##INFO=<ID=Allele_Freq_EUR,Number=1,Type=Float,Description="1KGP EUR allele frequency">'
-INFOCOLTEXT[Allele_Count_SAS]='##INFO=<ID=Allele_Count_SAS,Number=1,Type=Integer,Description="1KGP SAS alleles carrying the SV">'
-INFOCOLTEXT[Allele_Freq_SAS]='##INFO=<ID=Allele_Freq_SAS,Number=1,Type=Float,Description="1KGP SAS allele frequency">'
 ##annotations
 INFOCOLTEXT[OMIM_phenotype]='##INFO=<ID=OMIM_phenotype,Number=.,Type=String,Description="OMIM phenotypes associated with any gene the SV overlaps (OMIM 20260129)">'
 INFOCOLTEXT[OMIM_MOI]='##INFO=<ID=OMIM_MOI,Number=.,Type=String,Description="Mode of inheritance associated with phenotypes and genes the SV overlaps (OMIM 20260129)">'
@@ -206,6 +173,7 @@ comparatorHelp() {
     -O                     : [ output directory name (default is needLR_output relative to current directory) ]
     -C                     : [ full path to a gzipped and tabix indexed control cohort vcf ]
     -T                     : [ additional CPU threads to pass to bcftools ] 
+    -S                     : [ subpopulation names and counts, provided as a .csv/.tsv file or a , separated list of : pairs ]
 
     """
 }
@@ -220,11 +188,12 @@ annotateHelp() {
 
     
     Additional options:
-    - T     : [ additional CPU threads to pass to bcftools ] 
-    - C     : [ full path to a control cohort vcf ]
-    - L     : [ .txt file list of full file paths to gzipped query vcfs ]
-    - Q     : [ full path to a truvari-merged query cohort vcf ]
-    - O     : [ output directory name (default is needLR_output relative to current directory) ]
+    -T     : [ additional CPU threads to pass to bcftools ] 
+    -C     : [ full path to a control cohort vcf ]
+    -L     : [ .txt file list of full file paths to gzipped query vcfs ]
+    -Q     : [ full path to a truvari-merged query cohort vcf ]
+    -O     : [ output directory name (default is needLR_output relative to current directory) ]
+    -S     : [ subpopulation names and counts, provided as a .csv/.tsv file or a , separated list of : pairs ]
 
     General Annotation options:
     --all    :   [ annotate VCF with all available options listed below (default TRUE) ]
@@ -249,8 +218,6 @@ annotateHelp() {
     """
 }
 
-
-
 bedHelp() {
     echo """
     Usage: needLR bed <options> {input}
@@ -260,11 +227,13 @@ bedHelp() {
     positional parameters  : [ full path to input bed files ]
     
     Additional options:
-    - L     : [ .txt file list of full file paths to query beds ]
-    - O     : [ output directory name (default is needLR_output relative to current directory) ]
+    -L     : [ .txt file list of full file paths to query beds ]
+    -O     : [ output directory name (default is needLR_output relative to current directory) ]
 
     """
 }
+
+############################# preprocessing and validation functions #######################################################################################
 
 validateVCF () {
     local vcf=$1
@@ -315,6 +284,108 @@ validateVCF () {
     fi
 }
 
+truvari_ctrl_merge () {
+    local ctrl_files=$1
+    local output=$2
+    local reorder=$3
+
+    query_list=( $(echo ${ctrl_files} | tr ',' ' ') )
+
+    echo -e "\nMerging Control Sets\n"
+    #output="${UNSOLVED_DIR}/$(basename ${query_file} .vcf.gz).intermediate"
+
+    #This preprocesses the control VCFs to be >=50bp, on full chromosomes, and FILTER=PASS
+    echo "Preprocessing query VCF to SVs >=50bp, on full chromosomes, FILTER=$FILTERPASS"
+    #bcffilters=\''(INFO/SVTYPE="BND") || (INFO/SVTYPE="INS" || INFO/SVTYPE="DEL" || INFO/SVTYPE="DUP" || INFO/SVTYPE="INV") && (INFO/SVLEN > 49 || INFO/SVLEN < -49) && GT!="0/0" && GT!="0|0"'\'
+    chroms="chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY,chrM"
+
+    if [ -f "${temp}.list_temp.txt" ]
+    then
+        rm "${temp}.list_temp.txt"
+    fi
+
+    for((i=0;i<${#query_list[@]};i++))
+    do
+        query_file=${query_list[$i]}
+        currentlines=$( zgrep -v ^# ${query_file} | wc -l | tr -s ' ' | cut -f1 -d ' ')
+        echo "There are $currentlines starting variants in ${query_file}"
+
+        
+        if [ $FILTERPASS -eq 1 ]
+        then
+            bcftools view -f PASS \
+            -i '(INFO/SVTYPE="BND") || (INFO/SVTYPE="INS" || INFO/SVTYPE="DEL" || INFO/SVTYPE="DUP" || INFO/SVTYPE="INV") && (INFO/SVLEN > 49 || INFO/SVLEN < -49) && GT!="0/0" && GT!="0|0"' \
+                -r $chroms \
+                -o ${output}.${i}.filter.vcf.gz \
+                --threads ${THREADS} \
+                --write-index=tbi "${query_file}"
+        else
+            bcftools view -i '(INFO/SVTYPE="BND") || (INFO/SVTYPE="INS" || INFO/SVTYPE="DEL" || INFO/SVTYPE="DUP" || INFO/SVTYPE="INV") && (INFO/SVLEN > 49 || INFO/SVLEN < -49) && GT!="0/0" && GT!="0|0"' \
+                -r $chroms \
+                -o ${output}.${i}.filter.vcf.gz \
+                --threads ${THREADS} \
+                --write-index=tbi "${query_file}"
+        fi
+
+        newlines=$( zgrep -v ^# ${output}.${i}.filter.vcf.gz | wc -l | tr -s ' ' | cut -f1 -d ' ')
+        delta=$(( currentlines-newlines ))
+        echo "Removed $delta lines from ${query_file}"
+        currentlines=$newlines
+
+        echo "${output}.${i}.filter.vcf.gz" >> "${temp}.list_temp.txt" #actually adding to the list inside of the loop
+    done
+
+    #This creates the input list of VCFs for bcftools merge
+    echo "Creating list of input VCFs for bcftools merge"
+    echo "${DATA1KG}" >> "${temp}.list_temp.txt"
+
+    #bcftools merge
+    echo "Merging"
+    bcftools merge -m none \
+        --force-samples \
+        -l "${temp}.list_temp.txt" \
+        -Oz \
+        --threads $THREADS \
+        -o "${output}_bcftools_merged_with_ctrl_temp.vcf.gz" \
+        --write-index=tbi
+
+    if [[ ${reorder}!="no_reorder" ]]
+    then
+        bcftools view --threads $THREADS \
+        --force-samples \
+        --samples-file ${reorder} \
+        -O z \
+        -o "${output}_bcftools_merged_with_ctrl_temp.ordered.vcf.gz" \
+        --write-index=tbi \
+        "${output}_bcftools_merged_with_ctrl_temp.vcf.gz"
+    else
+        mv "${output}_bcftools_merged_with_ctrl_temp.vcf.gz" "${output}_bcftools_merged_with_ctrl_temp.ordered.vcf.gz"
+    fi
+
+    newlines=$( zgrep -v ^# ${output}_bcftools_merged_with_ctrl_temp.ordered.vcf.gz | wc -l | tr -s ' ' | cut -f1 -d ' ')
+    delta=$(( currentlines-newlines ))
+    echo "Added $delta lines"
+    currentlines=$newlines
+
+    #Truvari collapse (T31)
+    echo "Running truvari collapse"
+    truvari collapse -i "${output}_bcftools_merged_with_ctrl_temp.ordered.vcf.gz" \
+        -o "${output}_truvari_merged_temp.vcf" \
+        -c "${output}_truvari_collapsed_temp.vcf" \
+        -k "${truvari_k}" \
+        -s "${truvari_s}" \
+        -S "${truvari_S}" \
+        -r "${truvari_r}" \
+        -p "${truvari_p}" \
+        -P "${truvari_P}" \
+        -O "${truvari_O}"
+    
+    bcftools sort -O z -o "${output}.truvari_merged_controls.vcf.gz" --write-index=tbi "${output}_truvari_merged_temp.vcf" 
+
+    echo -e "\nDone\n"
+}
+
+
 ############################# input processing #######################################################################################
 #### get subcommand to run
 
@@ -344,7 +415,7 @@ shift
 alcannotations=""
 
 ### get other flags and options
-while getopts HP:C:L:Q:O:B:T:R:-: option
+while getopts HP:C:L:Q:O:B:T:R:S:-: option
 do
     case "${option}" in
         -)
@@ -354,6 +425,9 @@ do
                 alcannotations+=$alcannotations,$longoption ;;
 
                 all) SELECTEDANNO=$(echo ${ALLANNOTATIONLIST[@]} | tr ' ' ',') ;;
+                keep1kg) MERGECONTROLS=1 ;;
+                melt1kg) MELTCONTROLS=1 ;;
+                debug) DEBUG=1 ;;
                 *) echo "option $longoption not recognized, ignoring" ;;
             esac ;;
         H) help
@@ -367,11 +441,39 @@ do
         T) THREADS="${OPTARG}" ;;
         F) FILTERPASS=1 ;;
         R) ANALYSISREGION="${OPTARG}" ;;
+        S) SUBPOPS="${OPTARG}" ;;
         
     esac
 done
 
+DATA1KG="$refloc/UWONT_500_sniffles_2.6.2_preproc2_T31_v4.2.2.vcf.gz"
+
+# annotation filenames
+
+GENES="$refloc/bed_files/PROTEIN_CODING_GENE_gencode.v45.annotation_5kb_slop.bed"
+UTR="$refloc/bed_files/ENSEMBL_CANONICAL_PROTEIN_CODING_UTR_gencode.v45.annotation.bed"
+CDS="$refloc/bed_files/ENSEMBL_CANONICAL_EXON_in_PROTEIN_CODING_GENE_NO_UTR_gencode.v45.annotation.sorted.bed"
+OMIM_GENES="$refloc/bed_files/OMIM.20260129.sanitized.name_indexed.csv"
+GENCC="$refloc/bed_files/gencc-clean-sorted-20260326.csv"
+#HPO="$refloc/bed_files/HPO_genes_to_phenotype_cut.txt"
+PLI="$refloc/bed_files/gnomAD_v4.1_constraint_CURATED.csv"
+OREGANNO="$refloc/bed_files/ORegAnno.bed"
+HG38_REGIONS="$refloc/bed_files/hg38.centromeres.pericentromeres.telomeres.bed"
+VAMOS="$refloc/bed_files/from_SG_STR_VNTR_original_motifs.set148_cut.sorted.bed"
+VAMOSEXPAND="$refloc/bed_files/vamos.slop.hg38.sorted.bed"
+SEGDUPS="$refloc/bed_files/SEGDUPS_GIAB_v3.3.labeled.bed"
+HOMOPOLYMERS="$refloc/bed_files/gus_homemade_homopolymers_ge50_nodecoy.bed"
+REPEAT_MASKER="$refloc/bed_files/UCSC_hg38_Repeats_RepeatMasker.bed"
+DEFRABB_HICONF="$refloc/bed_files/GRCh38_HG002-T2TQ100-V1.0_stvar.benchmark.labeled.bed"
+GAPS="$refloc/bed_files/UCSC_hg38_Mapping_and_Sequencing_Gap.labeled.bed"
+GENOME_FILE="$refloc/bed_files/hg38.chrom.sizes.txt"
+
 temp="${OUTPUTDIR}/needlr.temp"
+
+if [[ ! -d ${OUTPUTDIR} ]]
+then
+    mkdir -p ${OUTPUTDIR}
+fi
 
 if [ ${#alcannotations} -gt 0 ]
 then
@@ -412,6 +514,10 @@ then
         elif [[ *"$inputExt"* == *"vcf"* ]]
         then
             INPUT_VCFS+=( $(validateVCF $vcf) )
+        else
+            echo "Error: File extension $inputExt not recognized, quitting"
+            echo "You provided: $vcf"
+            exit 1
         fi
     done
 elif [[ -z "${QUERY_VCFS+x}" ]]
@@ -483,6 +589,7 @@ else
     done
 fi
 
+
 # check if using an external control set vcf
 if [[ ! -z ${TRUVARI_MERGED_CTRL_SET+x} ]]
 then
@@ -490,20 +597,170 @@ then
     CTRL_MERGED=${TRUVARI_MERGED_CTRL_SET}
     CTRL_SAMPLE_NAME_LIST=( $(bcftools view -h ${CTRL_MERGED} | grep -v ^## | cut -f10-) )
     TOTAL_SAMPLES=${#CTRL_SAMPLE_NAME_LIST[@]}
+
+    # read from either a textfile or the comma and colon separated pairs 
+    if [ ! -z ${SUBPOPS+x} ]
+    then
+        RUNSUBPOPS=1
+        # check if $SUBPOPS is a file
+        if [[ ${SUBPOPS} =~ "tsv" || ${SUBPOPS} =~ "csv" ]]
+        then
+            # read contents of file and then reset subpops and control vcf variables
+            cat ${SUBPOPS} | tr ',' '\t' | sort -k2,2 > $temp.custom_ctrls_names.tsv
+            cut -f1 $temp.custom_ctrls_names.tsv > $temp.subpop.ordered.names.txt
+            labelnames=( $(cut -f2 $temp.custom_ctrls_names.tsv | uniq ) )
+            cut -f2 $temp.custom_ctrls_names.tsv | awk '{subpops[$0]+=1}END{for(i in subpops){print i,subpops[i]}}' > $temp.subpop.unordered.counts.txt
+            subpoplevels=()
+            for label in ${labelnames[@]}
+            do
+                labelcount=$( grep $label $temp.subpop.unordered.counts.txt | cut -d ' ' -f2)
+                subpoplevels+=( "${label}:${labelcount}" )
+            done
+            SUBPOPS=$(echo ${subpoplevels[@]} | tr ' ' ',')
+            echo "sorting samples in control VCF by supopulation"
+            bcftools view --threads ${THREADS} \
+                --samples-file $temp.subpop.ordered.names.txt \
+                --force-samples \
+                -Oz -o $temp.custom_control.reordered.vcf.gz \
+                --write-index=tbi \
+                ${CTRL_MERGED}
+            CTRL_MERGED=$temp.custom_control.reordered.vcf.gz
+        else
+            # subpop labels are supplied as pairs
+            # get the names of custom control samples from the merged vcf
+            # it is assummed that the samples are in order.
+            CUSTOM_CTRL_SAMPLE_NAMES=( $(bcftools view -h ${CTRL_MERGED} | grep -v ^## | cut -f10-) )
+            subgroups=( $(echo ${SUBPOPS} | tr ',' ' ') )
+            offset=0
+            echo "provided subgroups: ${subgroups}"
+            
+            if [ -f "$temp.custom_ctrls_names.tsv" ]
+            then
+                rm $temp.custom_ctrls_names.tsv
+            fi
+            for group in ${subgroups[@]}
+            do
+                grouplabels=( $(echo $group | tr ':' ' ') )
+                label=${grouplabels[0]}
+                labelcount=${grouplabels[1]}
+                for((i=0;i<$labelcount;i++))
+                do
+                    sampleindex=$(($offset+$i))
+                    echo -e "${CUSTOM_CTRL_SAMPLE_NAMES[$sampleindex]}\t${label}" >> $temp.custom_ctrls_names.tsv
+                done
+                offset=$(($offset+$labelcount))
+            done
+        fi
+        #if SUBPOPS is not a file, make sure there are no repeats
+        if [ ${MERGECONTROLS} -eq 0 ]
+        then
+            echo "Not merging controls with 1kg"
+            # if not merging with 1kg controls, report counts for subgroups
+            subgroups=( $(echo ${SUBPOPS} | tr ',' ' ') )
+            SUBGROUP_LABELS=()
+            SUBGROUP_COUNTS=()
+            echo "Subpopulation counts are:"
+            for group in ${subgroups[@]}
+            do
+                grouplabels=( $(echo $group | tr ':' ' ') )
+                SUBGROUP_LABELS+=( ${grouplabels[0]} )
+                SUBGROUP_COUNTS+=( ${grouplabels[1]} )
+                echo "${grouplabels[0]}:${grouplabels[1]}"
+            done
+            NSUBGROUPS=${#SUBGROUP_LABELS[@]}
+            uniquelabels=( $(echo ${SUBGROUP_LABELS[@]} | tr ' ' '\n' | sort | uniq ) )
+            if [[ ${#uniquelabels[@]} -ne ${NSUBGROUPS} ]]
+            then
+                echo "Error: subgroups must be unique"
+                echo "subgroups supplied: ${SUBGROUP_LABELS[@]}"
+                exit 1
+            fi
+        else
+            echo "merging provided controls with 1kg controls"
+           # merge with the 1kg controls, optionally collapsing overlapping labels.
+            LABELS_1KG=( AFR AMR EAS EUR SAS )
+            SAMPLE_NAMES_1KG=( $(bcftools view -h ${DATA1KG} | grep -v ^## | cut -f10-) )
+            if [ -f "$temp.1kg_ctrls_names.tsv" ]
+            then
+                rm $temp.1kg_ctrls_names.tsv
+            fi
+            for name in ${SAMPLE_NAMES_1KG[@]}
+            do
+                label=${name##*.} # use shell expansion to get the last '.' separated field with the population name
+                if [[ ${MELTCONTROLS} -eq 0 ]]
+                then
+                    label="${label}_1KG"
+                fi
+                echo -e "${name}\t${label}" >> $temp.1kg_ctrls_names.tsv
+            done
+
+            cat $temp.custom_ctrls_names.tsv $temp.1kg_ctrls_names.tsv | sort -k2,2 > $temp.all_ctrls_names.sorted.tsv
+            cut -f1 $temp.all_ctrls_names.sorted.tsv > $temp.all_ctrls_names.sorted.samples.txt
+            ###########cut -f2 $temp.custom_ctrls_names.sorted.tsv > $temp.custom_ctrls_names.sorted.samples.txt
+            ###DEBUG HERE
+            # add the custom sample names and subgroups to the sample file
+            cat $temp.all_ctrls_names.sorted.tsv
+
+            truvari_ctrl_merge ${CTRL_MERGED} $temp.custom_control $temp.all_ctrls_names.sorted.samples.txt
+
+            CTRL_MERGED=$temp.custom_control.truvari_merged_controls.vcf.gz
+            CTRL_SAMPLE_NAME_LIST=( $(bcftools view -h ${CTRL_MERGED} | grep -v ^## | cut -f10-) )
+            TOTAL_SAMPLES=${#CTRL_SAMPLE_NAME_LIST[@]}
+
+            SUBGROUP_LABELS=( $(cut -f2 $temp.all_ctrls_names.sorted.tsv | uniq ) )
+            SUBGROUP_COUNTS=()
+            echo "Subpopulation counts are:"
+            #for label in ${SUBGROUP_LABELS[@]}
+            #do
+            #    count=( $(cut -f2 $temp.all_ctrls_names.sorted.tsv | grep $label | wc -l | tr -s ' ' | cut -d ' ' -f1 ) )
+            #    SUBGROUP_COUNTS+=( $count )
+            #    echo "${label}:$count"
+            #done
+            labelstring=$(echo ${SUBGROUP_LABELS[@]} | tr ' ' ',' )
+            SUBGROUP_COUNTS=( $( cat $temp.all_ctrls_names.sorted.tsv  | awk -F '\t' 'NR==1{subpop=$2;subcount=1}NR>1{if(subpop==$2){subcount+=1}else{print subcount;subcount=1;subpop=$2}}END{print subcount}' ) )
+            for((i=0;i<${#SUBGROUP_COUNTS[@]};i++))
+            do
+                echo "${SUBGROUP_LABELS[$i]} : ${SUBGROUP_COUNTS[$i]}"
+            done
+            NSUBGROUPS=${#SUBGROUP_LABELS[@]}
+        fi
+    else
+       NSUBGROUPS=0 
+    fi
 else
     #This is the Truvari merge of 500 1KGP samples
-    CTRL_MERGED="$DATA1KG"
+    CTRL_MERGED="${DATA1KG}"
     
     ##This is the list of the 1KGP sample names in the order they will be merged in Truvari
     CTRL_SAMPLE_NAME_LIST=( $(bcftools view -h ${CTRL_MERGED} | grep -v ^## | cut -f10-) )
     TOTAL_SAMPLES=${#CTRL_SAMPLE_NAME_LIST[@]}
-    AFR=$( echo ${CTRL_SAMPLE_NAME_LIST[@]} | tr ' ' '\n' | grep -c AFR )
-    AMR=$( echo ${CTRL_SAMPLE_NAME_LIST[@]} | tr ' ' '\n' | grep -c AMR )
-    EAS=$( echo ${CTRL_SAMPLE_NAME_LIST[@]} | tr ' ' '\n' | grep -c EAS )
-    EUR=$( echo ${CTRL_SAMPLE_NAME_LIST[@]} | tr ' ' '\n' | grep -c EUR )
-    SAS=$( echo ${CTRL_SAMPLE_NAME_LIST[@]} | tr ' ' '\n' | grep -c SAS )
-    NSUBGROUPS=6
+    SUBGROUP_LABELS=( AFR AMR EAS EUR SAS )
+    SUBGROUP_COUNTS=()
+    echo "Subpopulation counts are:"
+    for label in ${SUBGROUP_LABELS[@]}
+    do
+        count=$(echo ${CTRL_SAMPLE_NAME_LIST[@]} | tr ' ' '\n' | grep -c $label)
+        SUBGROUP_COUNTS+=( $count )
+        echo "${label}:$count (1kg built in)"
+    done
+    NSUBGROUPS=${#SUBGROUP_LABELS[@]}
+    RUNSUBPOPS=1
 fi
+
+## add infocol text based on subgroups.
+if [[ ${NSUBGROUPS} -gt 0 ]]
+then
+    for((i=0;i<${#SUBGROUP_LABELS[@]};i++))
+    do
+        subgroup=${SUBGROUP_LABELS[$i]}
+        subcount=${SUBGROUP_COUNTS[$i]}
+        INFOCOLTEXT["Pop_Count_${subgroup}"]='##INFO=<ID=Pop_Count_'"${subgroup}"',Number=1,Type=Integer,Description="Control '"${subgroup}"' samples carrying the SV (n='"${subcount}"')">'
+        INFOCOLTEXT["Pop_Freq_${subgroup}"]='##INFO=<ID=Pop_Freq_'"${subgroup}"',Number=1,Type=Float,Description="Proportion of control '"${subgroup}"' samples carrying the SV">'
+        INFOCOLTEXT["Allele_Count_${subgroup}"]='##INFO=<ID=Allele_Count_'"${subgroup}"',Number=1,Type=Integer,Description="Control '"${subgroup}"' alleles carrying the SV">'
+        INFOCOLTEXT["Allele_Freq_${subgroup}"]='##INFO=<ID=Allele_Freq_'"${subgroup}"',Number=1,Type=Float,Description="Control '"${subgroup}"' sallele frequency">'
+    done
+fi
+
 
 # from here options may only be necessary within each command.
 # echo what options have already been processed
@@ -521,6 +778,8 @@ echo """Command         :   needLR $subcommand
 
 ############################# main functions #######################################################################################
 ############ core ##################
+
+
 
 truvari_merge () {
     local query_files=$1
@@ -605,10 +864,29 @@ truvari_merge () {
 
     ##This parses the Truvari VCF output for relevant information
     echo "Parsing Truvari VCF output"
-    bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t%INFO/SVLEN\t%INFO/SVTYPE[\t%GT\t%DV\t%DR]\n' \
-        "${output}_truvari_merged_temp.vcf" > "${output}_truvari_merged_temp.txt"
+    #bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t%INFO/SVLEN\t%INFO/SVTYPE[\t%GT\t%DV\t%DR]\n' \
+    #    "${output}_truvari_merged_temp.vcf" > "${output}_truvari_merged_temp.txt"
 
-    newlines=$( wc -l ${output}_truvari_merged_temp.txt | tr -s ' ' | cut -f1 -d ' ')
+    bcftools query -f '%CHROM\t%POS\t%INFO/CollapseId:%ID\t%REF\t%ALT\t%INFO/SVLEN\t%INFO/SVTYPE[\t%GT\t%DV\t%DR]\n' \
+        "${output}_truvari_merged_temp.vcf" > "${output}_truvari_merged_temp.txt"   
+
+    bcftools query -f '%ID\t%INFO/CollapseId\t%INFO/MatchId\n' "${output}_truvari_collapsed_temp.vcf" > "${output}_truvari_collapsed_temp.txt"
+
+    cat "${output}_truvari_merged_temp.txt" | awk -F '\t' 'BEGIN{OFS="\t"}{nids=split($3,ids,";");$3=ids[1];print $0}' > "${output}_truvari_merged_reduced.tsv"
+    cat "${output}_truvari_collapsed_temp.txt" | awk -F '\t' 'BEGIN{OFS="\t"}{nids=split($1,ids,";");$1=ids[1];if($1~/needLR/){print $0}}' > "${output}_truvari_collapsed_reduced.tsv"
+
+    needlrids=( $(cut -f1 "${output}_truvari_collapsed_reduced.tsv" ) )
+    matchids=( $(cut -f3 "${output}_truvari_collapsed_reduced.tsv" ) )
+
+    echo "Adding needLR IDs to collapsed variants"
+    for((i=0;i<${#needlrids[@]};i++))
+    do
+        matchid=${matchids[$i]}
+        needlrid=${needlrids[$i]}
+        sed -i "s/${matchid}:/${needlrid},/" "${output}_truvari_merged_reduced.tsv"
+    done
+
+    newlines=$( wc -l "${output}_truvari_merged_reduced.tsv" | tr -s ' ' | cut -f1 -d ' ')
     echo "Truvari output has $newlines lines"
 
     echo -e "\nDone with Step 1\n"
@@ -627,9 +905,9 @@ parse_vcf() {
     echo "Filtering reference only calls"
     if [[ $nquery -gt 1 ]]
     then
-        QUERY_LAST_GT=$(( 7 + ($nquery)*3 ))
+        QUERY_LAST_GT=$(( 8 + ($nquery)*3 ))
 
-        cat $input | awk -v first=7 \
+        cat $input | awk -v first=8 \
         -v last="${QUERY_LAST_GT}" \
         -v step=3 'BEGIN {OFS="\t"}{
         for (i = first; i <= last; i += step) {
@@ -637,7 +915,7 @@ parse_vcf() {
             }
         }' > "${output}_truvari_merged_query_filtered_temp.txt"
     else
-        QUERY_GT=7
+        QUERY_GT=8
         cat $input | awk -v qcol=${QUERY_GT} \
         'BEGIN{OFS="\t"}{if($qcol!="./."){print $0}}' > "${output}_truvari_merged_query_filtered_temp.txt"
     fi
@@ -657,7 +935,7 @@ parse_vcf() {
 
     ##This parses for SVs <=10Mb
     echo "Parsing for SVs <= 10Mb"
-    cat "${output}_temp1.txt" | awk '{if($5 > -10000000 && $5 < 10000000){print $0}}' > \
+    cat "${output}_temp1.txt" | awk '{if($6 > -10000000 && $6 < 10000000){print $0}}' > \
         "${output}_temp2.txt"
 
     newlines=$( wc -l "${output}_temp2.txt" | tr -s ' ' | cut -f1 -d ' ' )
@@ -691,7 +969,7 @@ collapse_gt() {
     then
         echo "keeping dv/dr"
         cat "${input}" | \
-        $scriptpath/src/./rearrange.awk \
+        awk -f $scriptpath/src/rearrange.awk \
          -v step=$STEP \
          -v ncohort=$nquery \
          -v ncontrols="${TOTAL_SAMPLES}" \
@@ -700,7 +978,7 @@ collapse_gt() {
         echo "keeping only gt columns"
         QUERY_END=$(( 7 + (nquery-1)  * 3 ))
         cat "${input}" | \
-        $scriptpath/src/./rearrange_dropdvdr.awk \
+        awk -f $scriptpath/src/rearrange_dropdvdr.awk \
          -v step="${STEP}" \
          -v ncohort=$nquery \
          -v ncontrols="${TOTAL_SAMPLES}" \
@@ -727,8 +1005,8 @@ make_supp_vecc() {
         echo "dropping query DV/DR columns"
     fi
     ##This creates a SUPP_VEC (like in Jasmine)
-    Q_GT_START=8
-    Q_GT_END=$(( 7 + (nquery*querycols) )) #preserving the closed interval
+    Q_GT_START=9
+    Q_GT_END=$(( 8 + (nquery*querycols) )) #preserving the closed interval
     Q_GT_STEP="${querycols}"
     CONTROL_GT_START=$(( Q_GT_END + 1 ))
     CONTROL_GT_END=$(( CONTROL_GT_START + TOTAL_SAMPLES - 1 )) #preserving the closed interval
@@ -738,7 +1016,7 @@ make_supp_vecc() {
     if [[ "${nquery}" -gt 1 ]]
     then
         echo "creating support vector for query cohort"
-        cat "${input}" | $scriptpath/src/./supvec.awk \
+        cat "${input}" | awk -f $scriptpath/src/supvec.awk \
             -v start="${Q_GT_START}" \
             -v end="${Q_GT_END}" \
             -v step="${Q_GT_STEP}" | 
@@ -749,12 +1027,12 @@ make_supp_vecc() {
 
     # Always make one for controls
     echo "creating support vector for controls"
-    cat "${output}_temp4.1.txt" | $scriptpath/src/./supvec.awk \
+    cat "${output}_temp4.1.txt" | awk -f $scriptpath/src/supvec.awk \
         -v start="${CONTROL_GT_START}" \
         -v end="${CONTROL_GT_END}" \
         -v step=1 > "${output}_temp4.txt"
 
-    ##Rearrange columns so SUPP_VECs are columns 8/9
+    ##Rearrange columns so SUPP_VECs are columns 9/10
     endcol=$( head -n1 ${output}_temp4.txt | awk '{print NF}' )
     let endcol=$endcol-1
     SUPP_VEC=$( cat "${output}_temp4.txt" | awk 'NR==1{print NF}' )
@@ -767,25 +1045,25 @@ make_supp_vecc() {
     #SUPP_VEC=$(( CONTROL_GT_END + 1 )) # the position of the first support vector
 
     echo "Moving support vector(s)"
-    paste <( cut -f 1-7 "${output}_temp4.txt" ) \
+    paste <( cut -f 1-8 "${output}_temp4.txt" ) \
         <( cut -f "${SUPP_VEC}-" "${output}_temp4.txt" ) \
-        <( cut -f "8-${endcol}" "${output}_temp4.txt" ) > "${output}_temp5.txt"
+        <( cut -f "9-${endcol}" "${output}_temp4.txt" ) > "${output}_temp5.txt"
 
 
     ## Calculate population stratified frequency statistics
     ## this version of the awk script can accept any breaks, not implemented yet for anything but 1kg
-    if [[ $run1kg -eq 1 ]]
+    if [[ $RUNSUBPOPS -eq 1 ]]
     then
-        breaks="$AFR,$AMR,$EAS,$EUR,$SAS"
-        echo "using subpopulation breaks: $breaks"
+        subpopcounts=$(echo ${SUBGROUP_COUNTS[@]} | tr ' ' ',')
+        echo "using subpopulation breaks: $subpopcounts"
     else
-        breaks="${TOTAL_SAMPLES}"
+        subpopcounts="${TOTAL_SAMPLES}"
         echo "no subpopulation breaks provided"
     fi
 
     echo "calculating population stratified frequency statistics"
-    cat "${output}_temp5.txt" | $scriptpath/src/./annocustomcontrol.awk \
-        -v controlbreaks=$breaks \
+    cat "${output}_temp5.txt" | awk -f $scriptpath/src/annocustomcontrol.awk \
+        -v controlbreaks=$subpopcounts \
         -v ncohort=$nquery \
         -v ncontrols="${TOTAL_SAMPLES}" \
         -v step=$querycols > "${output}_temp6.txt"
@@ -799,20 +1077,20 @@ make_supp_vecc() {
         echo "Matching vector support with cohort sample names"
         cohortnames=$(echo "${COHORT_SAMPLE_NAME_LIST[@]}" | tr ' ' ',')
         cat "${output}_temp6.txt" | \
-            $scriptpath/src/./matchSuppVecc.awk \
+            awk -f $scriptpath/src/matchSuppVecc.awk \
             -v names=$cohortnames \
-            -v colindex=8 > "${output}_temp6.1.txt"
+            -v colindex=9 > "${output}_temp6.1.txt"
         echo "Matching vector support with control sample names"
         cat "${output}_temp6.1.txt" | \
-            $scriptpath/src/./matchSuppVecc.awk \
+            awk -f $scriptpath/src/matchSuppVecc.awk \
             -v names=$names \
-            -v colindex=9 > "${output}_temp7.txt"
+            -v colindex=10 > "${output}_temp7.txt"
     else
         echo "Matching vector support with control sample names"
         cat "${output}_temp6.txt" | \
-            $scriptpath/src/./matchSuppVecc.awk \
+            awk -f $scriptpath/src/matchSuppVecc.awk \
             -v names=$names \
-            -v colindex=8 > "${output}_temp7.txt"
+            -v colindex=9 > "${output}_temp7.txt"
     fi
     # final output for this function is ${output}_temp7.txt
     echo -e "\nDone with Step 4\n"
@@ -841,19 +1119,19 @@ hwe() {
     ## file output names preserved for readability
     echo "calculating HWE statistics"
     cat "${output}_temp7.txt" | \
-        $scriptpath/src/./hwe.awk \
+        awk -f $scriptpath/src/hwe.awk \
         -v totsamples="${TOTAL_SAMPLES}" > "${output}_temp11.txt"
 
     #This lists all population counts/frequencies, allele counts/frequencies, and HWE info
     echo "Tabulating subpopulation and population count/frequencies"
-    if [[ "${run1kg}" -eq 1 ]]
+    if [[ "${RUNSUBPOPS}" -eq 1 ]]
     then
-        subpopcounts="${AFR},${AMR},${EAS},${EUR},${SAS}"
+        subpopcounts=$(echo ${SUBGROUP_COUNTS[@]} | tr ' ' ',')
     else
         subpopcounts="${TOTAL_SAMPLES}"
     fi
     cat "${output}_temp11.txt" | \
-        $scriptpath/src/./assign_counts.awk \
+        awk -f $scriptpath/src/assign_counts.awk \
         -v ncontrols="${TOTAL_SAMPLES}" \
         -v ncohort="$nquery" \
         -v step=$querycols \
@@ -864,13 +1142,13 @@ hwe() {
     hwecol=$( awk 'NR==1{print NF-3}' "${output}_temp12.txt" )
 
     cat "${output}_temp12.txt" | \
-        $scriptpath/src/./hwe_check.awk | \
+        awk -f $scriptpath/src/hwe_check.awk | \
         cut -f 1-"${hwecol}" > "${output}_temp13.txt"
 
     echo "Assigning SV end position"
     ##This adds the absolute value of the length of the SV to the start position (DELs are listed as negative lengths in the vcf, but the range is from the start position plus that number of nucleotides)
     cat "${output}_temp13.txt" | \
-        $scriptpath/src/./svlen.awk > "${output}_control_overlap.txt"
+        awk -f $scriptpath/src/svlen.awk > "${output}_control_overlap.txt"
 
     # final output for this funciton is ${output}_control_overlap.txt
     echo -e "\nDone with Step 5\n"
@@ -900,7 +1178,7 @@ condenseSummary() {
         let samplecols=1
     fi
      #offset for use with cut
-    let keepend=8+$samplecols
+    let keepend=9+$samplecols
     let loseend=$keepend+$ngts+1
 
     paste <(cut -f1-$keepend $input) \
@@ -921,7 +1199,7 @@ inheritanceSupVec() {
     # the cohort (parental) support vector will always be field 8
     if [[ $nquery == 3 ]]
     then
-        cut -f8 $input | awk -F '_' '{if(NF==1 ){\
+        cut -f9 $input | awk -F '_' '{if(NF==1 ){\
             if($0=="Proband"){print "de_novo"}
             else{print "not_present"}
         };\
@@ -935,12 +1213,12 @@ inheritanceSupVec() {
                 print "paternal"}
             else {print "inherited"}}}' > $output.inheritances.txt
     else
-        cut -f8 $input | awk -F '_' '{if($0!~/Proband/){print "not_present"}\
+        cut -f9 $input | awk -F '_' '{if($0!~/Proband/){print "not_present"}\
         else if(NF==1 && $0=="Proband"){print "not_inherited"}\
         else if(NF==2){print "inherited"}}' > $output.inheritances.txt
     fi
 
-    paste <(cut -f1-7 ${input}) $output.inheritances.txt <(cut -f9- ${input})  > ${output}_inheritance.txt 
+    paste <(cut -f1-8 ${input}) $output.inheritances.txt <(cut -f10- ${input})  > ${output}_inheritance.txt 
 }
 
 cohortControlOverlap() {
@@ -952,7 +1230,7 @@ cohortControlOverlap() {
     COHORT_SAMPLES=${#COHORT_SAMPLE_NAME_LIST[@]}
 
     truvari_merge "${query}" "${output}"
-    parse_vcf "${output}_truvari_merged_temp.txt" "${output}" "${COHORT_SAMPLES}"
+    parse_vcf "${output}_truvari_merged_reduced.tsv" "${output}" "${COHORT_SAMPLES}"
     collapse_gt "${output}_temp2.txt" "${output}" "${COHORT_SAMPLES}" 0
     make_supp_vecc "${output}_temp3.txt" "${output}" "${COHORT_SAMPLES}" 0
     hwe "${output}_temp7.txt" "${output}" "${COHORT_SAMPLES}" 0
@@ -966,7 +1244,7 @@ singleVCFControlOverlap() {
     local output=$2
 
     truvari_merge "${query}" "${output}"
-    parse_vcf "${output}_truvari_merged_temp.txt" "${output}" 1
+    parse_vcf "${output}_truvari_merged_reduced.tsv" "${output}" 1
     collapse_gt "${output}_temp2.txt" "${output}" 1 1
     make_supp_vecc "${output}_temp3.txt" "${output}" 1 1
     hwe "${output}_temp7.txt" "${output}" 1 1
@@ -974,20 +1252,21 @@ singleVCFControlOverlap() {
 
 }
 
+# debug more closely
 multiVCFControlOverlap() {
     local queries=$1
     local output=$2
     local n=$3
 
     truvari_merge "${queries}" "${output}"
-    parse_vcf "${output}_truvari_merged_temp.txt" "${output}" ${n}
+    parse_vcf "${output}_truvari_merged_reduced.tsv" "${output}" ${n}
     collapse_gt "${output}_temp2.txt" "${output}" ${n} 0 #read depth columns are dropped here
     # keep gt,alt depth,ref depth for later
     let ncols=3*n
-    let colend=$ncols+6
+    let colend=$ncols+7
     let cutcol=4*n
 
-    cut -f7-${colend} ${output}_temp2.txt | awk 'BEGIN{OFS="\t"}\
+    cut -f8-${colend} ${output}_temp2.txt | awk 'BEGIN{OFS="\t"}\
         {for(i=1;i<=NF;i+=3){\
             totalreads=$(i+1)+$(i+2);\
             if(totalreads==""){totalreads="."}
@@ -1061,7 +1340,7 @@ geneIndexedAnnotations() {
 
     # Consolidate multigene rows
     echo "Consolidating multigene rows"
-    cat $input | $scriptpath/src/./consolidateRows.awk \
+    cat $input | awk -f $scriptpath/src/consolidateRows.awk \
         -v indexField=$indexField > ${output}_consolidated.txt
     
 
@@ -1115,20 +1394,20 @@ positionIndexedAnnotations() {
     if [[ "${SELECTEDANNO}" =~ tre ]]
     then
         echo "Finding TRE overlap"
-        awk 'BEGIN{FS=OFS="\t"} $7!="INS" && $7!="DEL" && $7!="DUP" {print $0, "."}' \
+        awk 'BEGIN{FS=OFS="\t"} $8!="INS" && $8!="DEL" && $8!="DUP" {print $0, "."}' \
             "${input}" > "${output}"_novamos.txt
         bedtools map \
             -a ${input} \
             -b $VAMOSEXPAND \
             -c 4 \
             -o distinct | \
-            awk -F '\t' '{if($7=="DUP" || $7=="INS"){print $0}}' > ${output}_insdup.txt
+            awk -F '\t' '{if($8=="DUP" || $8=="INS"){print $0}}' > ${output}_insdup.txt
         bedtools map \
             -a ${input} \
             -b $VAMOS \
             -c 4 \
             -o distinct | \
-            awk -F '\t' '{if($7=="DEL"){print $0}}' > ${output}_del.txt
+            awk -F '\t' '{if($8=="DEL"){print $0}}' > ${output}_del.txt
         cat ${output}_insdup.txt ${output}_del.txt ${output}_novamos.txt | \
             awk 'BEGIN{FS=OFS="\t"} {$NF=($NF==-1||$NF==".")?".":"vamos"; print}' \
             | sort -k1,1 -k2,2n -k3,3n | uniq > ${output}_tre.txt
@@ -1212,11 +1491,11 @@ printVCF() {
     echo "Building output VCF"
 
     paste <( cat $input | awk -v qid=$qid 'BEGIN{OFS="\t"}\
-    NR==1{print $1,$2,$4,$5,$6,$7,$3,"Query_ID"}\
-    NR>1{print $1,$2,$4,$5,$6,$7,$3,qid}' ) <(cut -f8- $input ) > ${output}_vcf_rearrange.txt
+    NR==1{print $1,$2,$4,$5,$6,$7,$8,$3,"Query_ID"}\
+    NR>1{print $1,$2,$4,$5,$6,$7,$8,$3,qid}' ) <(cut -f9- $input ) > ${output}_vcf_rearrange.txt
 
     # infolines built on the input table header
-    tableheader=( $(head -n1 ${output}_vcf_rearrange.txt | cut -f 5- ) )
+    tableheader=( $(head -n1 ${output}_vcf_rearrange.txt | cut -f 6- ) )
     echo ${tableheader[@]}
 
     # pull file format and contig list from input vcf for future compatability with different references
@@ -1243,17 +1522,45 @@ printVCF() {
             -v header=${infoheaderval} \
             'BEGIN{OFS="\t"; ninfo=split(header,infoarray,"|")}
             {
-                printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t",$1,$2,".",$3,$4,".",".")
-                for(i=5;i<=NF;i++)
+                printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t",$1,$2,$3,$4,$5,".",".")
+                for(i=6;i<=NF;i++)
                 {
-                    printf("%s=%s;", infoarray[i-4], $i)
+                    printf("%s=%s;", infoarray[i-5], $i)
                 }
                 printf("\n")
             }' >> ${output}.vcf
 
-    bcftools sort ${output}.vcf -O z -o ${finalOutput}.vcf.gz --write-index=tbi
+    bcftools sort ${output}.vcf -O z -o ${output}.sorted.prelift.vcf.gz --write-index=tbi
+
+    zgrep ^## ${vcf} > ${finalOutput}.vcf
+    echo '##source="needLR-v4.1"' >> ${finalOutput}.vcf
+    echo '##INFO=<ID=needLR_null,Number=1,Type=String,Description="Supplied when no needLR annotation was created">' >> ${finalOutput}.vcf
+    zgrep  ^##INFO ${output}.sorted.prelift.vcf.gz >> ${finalOutput}.vcf
+    zgrep ^#CHROM ${vcf} >> ${finalOutput}.vcf
+
+    varids=( $(zgrep -v ^# $vcf | cut -f3) )
+    newinfolines=()
+    for varid in ${varids[@]}
+    do
+        varline=$(zgrep $varid ${output}.sorted.prelift.vcf.gz || echo "none")
+        if [[ $varline != "none" ]]
+        then
+            infoline=$( echo $varline | cut -d ' ' -f8 )
+        else
+            infoline='needLR_null="none"'
+        fi
+        newinfolines+=( $infoline )
+    done
+
+    paste <( zgrep -v ^# $vcf | cut -f1-7 ) \
+        <( paste <(zgrep -v ^# $vcf | cut -f8) <(echo ${newinfolines[@]} | tr ' ' '\n') | tr '\t' ';' ) \
+        <(zgrep -v ^# $vcf | cut -f9-10) >> ${finalOutput}.vcf
+
+    bgzip ${finalOutput}.vcf
+    tabix -p vcf ${finalOutput}.vcf.gz
 
 }
+
 
 printAnnotationHeader() {
     annotationcols=0
@@ -1321,7 +1628,8 @@ printTable() {
     echo "Printing tabular results to ${finalOutput}_RESULTS.tsv"
 
     # make different headers depending on input options
-    tableheader=( CHROM POS End_Pos REF ALT SVLEN SVTYPE )
+    #tableheader=( CHROM POS End_Pos REF ALT SVLEN SVTYPE )
+    tableheader=( CHROM POS End_Pos ID REF ALT SVLEN SVTYPE )
     case $nquery in
         1) tableheader+=( Control_support Genotype Alt_Reads Ref_Reads Total_Reads ) ;;
         2) tableheader+=( Inheritance Control_support Genotype Alt_Reads Ref_Reads Total_Reads Parental_GT Parental_Alt_Reads Parental_Ref_Reads Parental_Total_Reads) ;;
@@ -1340,23 +1648,24 @@ printTable() {
 
     let controlstart=$sampleend+1
     let controlend=controlstart
-    if [[ $run1kg -eq 1 ]] #this should be replaced with optional subpopulation names in a later release
+    if [[ $NSUBGROUPS -gt 1 ]] #this should be replaced with optional subpopulation names in a later release
     then
-        tableheader+=(  Pop_Count_AFR Pop_Freq_AFR
-                        Pop_Count_AMR Pop_Freq_AMR 
-                        Pop_Count_EAS Pop_Freq_EAS
-                        Pop_Count_EUR Pop_Freq_EUR
-                        Pop_Count_SAS Pop_Freq_SAS
+        poplabels=()
+        allelelabels=()
+        for subgroup in ${SUBGROUP_LABELS[@]}
+        do
+            poplabels+=( "Pop_Count_${subgroup}" "Pop_Freq_${subgroup}")
+            allelelabels+=( "Allele_Count_${subgroup}" "Allele_Freq_${subgroup}")
+        done
+        tableheader+=(  ${poplabels[@]}
                         Pop_Count_ALL Pop_Freq_ALL 
-                        Allele_Count_AFR Allele_Freq_AFR
-                        Allele_Count_AMR Allele_Freq_AMR 
-                        Allele_Count_EAS Allele_Freq_EAS
-                        Allele_Count_EUR Allele_Freq_EUR
-                        Allele_Count_SAS Allele_Freq_SAS
+                        ${allelelabels[@]}
                         Allele_Count_ALL Allele_Freq_ALL )
-        let controlend=$controlstart+24-1
+
+        let controlend=$controlstart+${#poplabels[@]}+${#allelelabels[@]}+3
         afcol=$controlend
     else
+        echo "no subgroups"
         tableheader+=( Pop_Count_ALL Pop_Freq_ALL Allele_Count_ALL Allele_Freq_ALL )
         let controlend=$controlstart+3
         afcol=$controlend
@@ -1382,14 +1691,15 @@ printTable() {
     longcols=( 4 5 ) #REF ALT
     let annotationstart=$sampleend+2
     NF=$( head -n1 ${output}_results_long.txt | awk '{print NF}' )
-    let SUBGROUPCOLUMNS=${NSUBGROUPS}*4
+    SUBGROUPCOLUMNS=$(( ${NSUBGROUPS}*4 ))
     let annotationstop=$NF-6-$SUBGROUPCOLUMNS
+    echo "annotationstop: $annotationstop"
     
     echo "${tableheader[@]}" | tr ' ' '\t' > ${finalOutput}_RESULTS.tsv
         
     cat ${output}_results_long.txt | \
         awk -F '\t' -v annostart=${annotationstart} -v annostop=${annotationstop} \
-        -v ref=4 -v alt=5 'BEGIN{OFS="\t"}\
+        -v ref=5 -v alt=6 'BEGIN{OFS="\t"}\
         {if(length($ref) > 30000){$ref="[too_long_see_vcf]"};
             if(length($alt) > 30000){$alt="[too_long_see_vcf]"};
             for(i=annostart;i<=annostop;i++){
@@ -1408,9 +1718,9 @@ filterTable() {
 
     if [ -z ${COHORT_VCF+x} ] #if running with a cohort, account for different # cols
     then
-        afcol=13
+        afcol=14
     else
-        afcol=17
+        afcol=18
     fi
 
     ##Filtered output 1: SVs absent from 1KGP entirely (afcol = Allele_Freq_ALL_1KGP)
@@ -1429,16 +1739,16 @@ filterInheritance() {
 
     if [[ $runtype == "TRIO" ]]
     then    
-        afcol=22
-        incol=8
+        afcol=23
+        incol=9
 
         ##Filtered output 3: de novo SVs
         awk -F'\t' -v inheritance=$incol 'BEGIN{OFS="\t"} NR==1 || $inheritance=="de_novo" {print}' \
         $input > "${output}_RESULTS_denovo.tsv"
 
     else
-        afcol=18
-        incol=8
+        afcol=19
+        incol=9
 
         awk -F'\t' -v inheritance=$incol 'BEGIN{OFS="\t"} NR==1 || $inheritance=="not_inherited" {print}' \
         $input > "${output}_RESULTS_not_inherited.tsv"
@@ -1513,6 +1823,7 @@ annotateRun() {
 
     if [[ ${ANALYSISREGION} != "All" ]]
     then
+        echo "CTRL_MERGED is ${CTRL_MERGED}"
         clipRegion ${CTRL_MERGED} $temp.clippedControl.vcf.gz
         CTRL_MERGED=$temp.clippedControl.vcf.gz
     fi
@@ -1537,6 +1848,14 @@ annotateRun() {
         else
             analysisquery=$query
         fi
+
+        echo "query is ${analysisquery}"
+        # assign needLR id so that original variant notation can be recovered
+        zgrep ^# ${analysisquery} > ${temp}.input.vcf
+        zgrep -v ^# ${analysisquery} | awk -F '\t' 'BEGIN{OFS="\t"}{$3="needLR."$3; print $0}' >> ${temp}.input.vcf
+        bgzip ${temp}.input.vcf
+        tabix -p vcf ${temp}.input.vcf.gz
+        analysisquery=${temp}.input.vcf.gz
 
         if [ ! -z ${COHORT_VCF+x} ]
         then
@@ -1667,7 +1986,14 @@ comparatorRun() {
 
     echo "Annotating as a $ctype"
 
-    multiVCFControlOverlap ${output}_proband.vcf.gz,${parentString} ${output} ${n}
+    # assign needLR id so that original variant notation can be recovered
+    zgrep ^# ${output}_proband.vcf.gz > ${output}_proband.temp.vcf
+    zgrep -v ^# ${output}_proband.vcf.gz | awk -F '\t' 'BEGIN{OFS="\t"}{$3="needLR."$3; print $0}' >> ${output}_proband.temp.vcf
+    bgzip ${output}_proband.temp.vcf
+    tabix -p vcf ${output}_proband.temp.vcf.gz
+
+
+    multiVCFControlOverlap ${output}_proband.temp.vcf.gz,${parentString} ${output} ${n}
 
     annotateGenes "${output}_inheritance.txt" ${output}
     
@@ -1680,13 +2006,13 @@ comparatorRun() {
 
     ## add back in the proband read depths and totals + parental genotypes
     ## remove records with no proband gt
-    paste <( cut -f1-9 ${output}_posannotations.txt) \
+    paste <( cut -f1-10 ${output}_posannotations.txt) \
         ${output}_dvdr.txt \
-        <(cut -f17- ${output}_posannotations.txt) \
+        <(cut -f18- ${output}_posannotations.txt) \
         | grep -v "not_present" > ${output}_fullwidth.txt
 
     printTable ${output}_fullwidth.txt ${output} ${finalOutput} $n
-    printVCF $analysisquery ${finalOutput}_RESULTS.tsv ${output} ${finalOutput} $n
+    printVCF ${output}_proband.temp.vcf.gz ${finalOutput}_RESULTS.tsv ${output} ${finalOutput} $n
 
     
 
@@ -1790,4 +2116,7 @@ case "${subcommand}" in
         exit 1
 esac
 
-rm $temp*
+if [[ $DEBUG -eq 0 ]]
+then
+    rm $temp*
+fi

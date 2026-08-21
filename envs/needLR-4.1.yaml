@@ -1,0 +1,13 @@
+channels:
+  - conda-forge
+  - base
+  - bioconda
+dependencies:
+  - bedtools=2.31.1
+  - bcftools=1.23.1
+  - truvari=5.4.0
+  - gawk=5.3.1
+  - coreutils=9.5
+  - sed>=4.7
+  - gzip >=1.9
+  - grep >=3.1

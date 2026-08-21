@@ -55,6 +55,7 @@ process run_needLR_annotate_custom_controls {
     input:
         path( vcf )
         path( control_vcf )
+        path( subpopulations )
         val( sample_id )
         val( region )
         val( annotations )
@@ -85,6 +86,10 @@ process run_needLR_annotate_custom_controls {
         if [[ ${region} != "none" ]]
         then
             argstopass+=( -R ${region} )
+        fi
+        if [[ ${control_vcf.name} != "NO_FILE" ]]
+        then
+            argstopass+=( -S ${subpopulations} )
         fi
         if [[ ${isMerged} == TRUE ]]
         then

@@ -1,4 +1,4 @@
-#! /bin/awk -f
+#! /usr/bin/env awk
 
 #expects ncontrols, ncohort, step (for cohort, not controls), controlcounts
 
@@ -6,24 +6,25 @@ BEGIN{
     nsubpops=split(controlcounts, pop_totals,  ",");
     chr=1;
     pos=2;
+    needlrid=4;
     tempcol=3;
-    ref=4;
-    alt=5;
-    svlen=6;
-    svtype=7;
-    suppvecc=8;
-    svgt=9;
-    svvarreads=10;
-    svrefreads=11
-    totalreads=12
-    sample_col_end=12
+    ref=5;
+    alt=6;
+    svlen=7;
+    svtype=8;
+    suppvecc=9;
+    svgt=10;
+    svvarreads=11;
+    svrefreads=12
+    totalreads=13
+    sample_col_end=13
     control_start=sample_col_end+1
     control_end=control_start+ncontrols-1
     subpop_start=control_end+1
     if(ncohort>1){
-      qsupportvec=8
-      suppvecc=9
-      cohort_start=10
+      qsupportvec=9
+      suppvecc=10
+      cohort_start=11
       cohort_end=(cohort_start+(ncohort*step))-1
       control_start=cohort_end+1
       control_end=control_start+ncontrols-1
