@@ -110,7 +110,7 @@ Alternatively, you can make a custom conda installation following these steps:
 
 ```
 wget https://s3.amazonaws.com/1000g-ont/needLR/needLR-v4.1-backend-files.tar.gz
-tar -xvzf needLR_v4.1_backend_files.tar.gz
+tar -xvzf needLR-v4.1-backend-files.tar.gz
 ```
 
 If using a custom installation, you **must** use flag `-B` with your path to the `backend_files` folder downloaded in step 4 above.
@@ -298,7 +298,7 @@ Compare a proband VCF to two parental VCFs along with the 500 1KGP database and 
 needLR comparator -P examples/inputs/trio/HG007_Mo_hantrio_sniffles_chr22.vcf.gz,examples/inputs/trio/HG006_Fa_hantrio_sniffles_chr22.vcf.gz examples/inputs/trio/HG005_Pb_hantrio_sniffles_chr22.vcf.gz
 ```
 
-Output for this example `examples/outputs/HG005_Pb_hantrio_sniffles_chr22_needLR_TRIO_1kg_v4.1/`
+Output for this example `examples/outputs/HG005_Pb_hantrio_sniffles_chr22_needLR_TRIO_1kg_v4.0/`
 
 
 Compare a proband VCF to a single parent VCF along with a custom control VCF and apply only gencc annotations
@@ -329,7 +329,7 @@ All annotation options available in `annotate` are also available in `bed`.
 
 #### Examples
 
-Annotate example bed, limit to chr22, apply all available annotations
+Annotate kinnex data, limit to chr22, apply all available annotations
 
 ```
 needLR bed -R chr22 examples/inputs/kinnex_example_chr22.bed
